@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventura Matemática 🚀</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--orange:#F97316;--dark:#0F172A;--space:#1E1B4B}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--dark);color:white;min-height:100vh;overflow:hidden}
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+
+/* Stars bg */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at top,#1E1B4B 0%,#0F172A 60%);z-index:-1}
+
+/* INTRO */
+#intro{text-align:center}
+.intro-rocket{font-size:6rem;animation:rocket-fly 3s ease-in-out infinite}
+@keyframes rocket-fly{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(-20px) rotate(10deg)}}
+.intro-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;color:#F97316;margin-bottom:8px}
+.intro-sub{color:#94A3B8;font-size:1rem;max-width:480px;margin:0 auto 16px;line-height:1.6}
+.bncc{background:rgba(249,115,22,.15);border:1px solid #F97316;padding:8px 18px;
+      border-radius:12px;color:#FED7AA;font-size:.82rem;margin-bottom:20px;display:inline-block}
+.levels-preview{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.lv-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+         padding:14px 20px;border-radius:14px;text-align:center;min-width:120px}
+.lv-card .lv-emoji{font-size:2rem;display:block;margin-bottom:6px}
+.lv-card .lv-name{font-size:.8rem;font-weight:600;color:#F97316}
+.lv-card .lv-grade{font-size:.7rem;color:#64748B}
+.btn-start{background:linear-gradient(90deg,#EA580C,#F97316);border:none;color:white;
+           padding:16px 48px;border-radius:16px;font-size:1.2rem;font-weight:800;cursor:pointer;
+           transition:all .2s;box-shadow:0 8px 24px rgba(249,115,22,.4)}
+.btn-start:hover{transform:scale(1.05) translateY(-2px)}
+.btn-back{background:none;border:1px solid #334155;color:#64748B;padding:8px 20px;
+          border-radius:8px;cursor:pointer;font-size:.85rem;margin-top:12px;transition:all .2s}
+.btn-back:hover{border-color:#94A3B8;color:#94A3B8}
+
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
+     justify-content:space-between;padding:12px 20px;background:rgba(0,0,0,.5);
+     backdrop-filter:blur(8px);z-index:10;gap:8px;flex-wrap:wrap}
+.hud-item{display:flex;flex-direction:column;align-items:center;min-width:55px}
+.hud-label{font-size:.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px}
+.hud-val{font-size:1.1rem;font-weight:800}
+.sv{color:#F97316}.lv{color:#EF4444;font-size:1.3rem}.pv{color:#A78BFA}.stv{color:#F59E0B}
+.timer-wrap{position:relative;width:52px;height:52px}
+.timer-svg{transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:#1E293B;stroke-width:4}
+.t-arc{fill:none;stroke:#F97316;stroke-width:4;stroke-linecap:round;
+       stroke-dasharray:138;stroke-dashoffset:0;transition:stroke-dashoffset .1s}
+.t-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+       font-size:1rem;font-weight:800;color:white}
+.progress-bar{position:absolute;top:68px;left:0;right:0;height:4px;background:#1E293B;z-index:10}
+.progress-fill{height:100%;background:linear-gradient(90deg,#EA580C,#F97316,#FDBA74);
+               transition:width .5s ease;border-radius:2px}
+
+/* GAME */
+#game{background:transparent;position:relative;padding:0}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;
+           justify-content:center;padding:80px 20px 20px;gap:20px;position:relative;z-index:1}
+.level-badge{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);
+             padding:6px 18px;border-radius:20px;color:#FB923C;font-size:.85rem;font-weight:600}
+.question-card{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);
+               border-radius:24px;padding:32px 40px;text-align:center;backdrop-filter:blur(10px);
+               animation:card-in .4s ease;max-width:520px;width:100%}
+@keyframes card-in{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.q-context{font-size:.85rem;color:#64748B;margin-bottom:8px;line-height:1.5}
+.q-visual{font-size:2.5rem;margin-bottom:12px}
+.q-text{font-size:clamp(1.3rem,3vw,2rem);font-weight:800;margin-bottom:4px;line-height:1.3}
+.q-sub{color:#94A3B8;font-size:.88rem}
+.options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:480px;width:100%}
+.opt-btn{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);
+         border-radius:16px;padding:18px;font-size:1.2rem;font-weight:700;color:white;
+         cursor:pointer;transition:all .2s}
+.opt-btn:hover:not(:disabled){background:rgba(249,115,22,.15);border-color:#F97316;
+                               transform:scale(1.04)}
+.opt-btn.correct{background:rgba(34,197,94,.2)!important;border-color:#22C55E!important;
+                  color:#22C55E!important;transform:scale(1.06)}
+.opt-btn.wrong{background:rgba(239,68,68,.2)!important;border-color:#EF4444!important;
+               color:#EF4444!important}
+.opt-btn:disabled{cursor:default}
+
+/* Feedback */
+.feedback{position:absolute;top:0;left:0;right:0;bottom:0;display:none;
+          flex-direction:column;align-items:center;justify-content:center;
+          z-index:20;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);animation:fade-in .2s}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.feedback.active{display:flex}
+.fb-icon{font-size:5rem;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fb-title{font-size:2rem;font-weight:900;margin:10px 0}
+.fb-correct{color:#22C55E}.fb-wrong{color:#EF4444}
+.fb-pts{color:#F59E0B;font-size:1.1rem;font-weight:700}
+.fb-exp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+        padding:14px 22px;border-radius:14px;color:#CBD5E1;font-size:.9rem;
+        max-width:420px;text-align:center;line-height:1.6;margin:8px 20px}
+.btn-next{background:#F97316;border:none;color:white;padding:12px 36px;border-radius:12px;
+          font-size:1rem;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s;
+          box-shadow:0 4px 14px rgba(249,115,22,.4)}
+.btn-next:hover{transform:scale(1.05)}
+
+/* Phase transition */
+#phase-trans{position:fixed;top:0;left:0;right:0;bottom:0;background:#0F172A;display:none;
+             flex-direction:column;align-items:center;justify-content:center;z-index:100;text-align:center}
+#phase-trans.active{display:flex}
+.pt-emoji{font-size:5rem;animation:bounce 1s infinite;margin-bottom:16px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+.pt-title{font-size:2.5rem;font-weight:900;color:#F97316}
+.pt-sub{color:#94A3B8;margin-top:8px;font-size:1rem}
+.pt-score{font-size:1.5rem;font-weight:700;color:#F59E0B;margin-top:16px}
+
+/* Stars decoration */
+.stars-deco span{position:absolute;font-size:1.5rem;animation:twinkle-star 2s infinite;opacity:.4}
+@keyframes twinkle-star{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:.6;transform:scale(1.2)}}
+
+/* RESULTS */
+#results{text-align:center}
+.res-rocket{font-size:5rem;animation:rocket-fly 2s ease-in-out infinite}
+.res-title{font-size:2.5rem;font-weight:900;margin:16px 0 6px}
+.res-score{font-size:4rem;font-weight:900;color:#F97316}
+.res-lbl{color:#64748B;font-size:.9rem}
+.res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px auto;max-width:380px}
+.rs{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px;border-radius:14px}
+.rs-num{font-size:1.8rem;font-weight:800;color:#FDBA74}
+.rs-lbl{font-size:.7rem;color:#64748B;text-transform:uppercase;margin-top:4px}
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn-p{background:#F97316;border:none;color:white;padding:14px 32px;border-radius:14px;
+       font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-p:hover{transform:scale(1.05)}
+.btn-s{background:none;border:1px solid #334155;color:#94A3B8;padding:14px 32px;
+       border-radius:14px;font-size:1rem;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-s:hover{border-color:#64748B;color:white}
+</style>
+</head>
+<body>
+
+<!-- Decorative stars -->
+<div class="stars-deco" id="starsD"></div>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="intro-rocket">🚀</div>
+  <div class="intro-title">Aventura Matemática</div>
+  <div class="intro-sub">O universo precisa de você! Resolva os desafios matemáticos para navegar pela galáxia e salvar os planetas!</div>
+  <div class="bncc">📚 Matemática · EF03MA → EF05MA · 3º, 4º e 5º ano</div>
+  <div class="levels-preview">
+    <div class="lv-card">
+      <span class="lv-emoji">🌍</span>
+      <div class="lv-name">Nível 1</div>
+      <div class="lv-grade">3º ano · +/-/×</div>
+    </div>
+    <div class="lv-card">
+      <span class="lv-emoji">🪐</span>
+      <div class="lv-name">Nível 2</div>
+      <div class="lv-grade">4º ano · ÷/frações</div>
+    </div>
+    <div class="lv-card">
+      <span class="lv-emoji">⭐</span>
+      <div class="lv-name">Nível 3</div>
+      <div class="lv-grade">5º ano · problemas</div>
+    </div>
+  </div>
+  <button class="btn-start" onclick="startGame()">🚀 Decolar!</button>
+  <a href="../index.html" style="text-decoration:none"><button class="btn-back">← Menu Principal</button></a>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game" style="position:relative">
+  <div class="hud">
+    <div class="hud-item"><span class="hud-label">Pontos</span><span class="hud-val sv" id="scoreD">0</span></div>
+    <div class="hud-item"><span class="hud-label">Vidas</span><span class="hud-val lv" id="livesD">❤❤❤</span></div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="t-bg" cx="26" cy="26" r="22"/>
+        <circle class="t-arc" id="tArc" cx="26" cy="26" r="22"/>
+      </svg>
+      <div class="t-txt" id="tTxt">15</div>
+    </div>
+    <div class="hud-item"><span class="hud-label">Nível</span><span class="hud-val pv" id="levelD">1/3</span></div>
+    <div class="hud-item"><span class="hud-label">Streak</span><span class="hud-val stv" id="streakD">🔥0</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="game-area">
+    <div class="level-badge" id="lvBadge">Nível 1 — Sistema Solar</div>
+    <div class="question-card" id="qCard">
+      <div class="q-context" id="qCtx"></div>
+      <div class="q-visual" id="qVis"></div>
+      <div class="q-text" id="qText">Quanto é 5 + 3?</div>
+      <div class="q-sub" id="qSub"></div>
+    </div>
+    <div class="options-grid" id="optGrid"></div>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fbI">✅</div>
+    <div class="fb-title fb-correct" id="fbT">CORRETO!</div>
+    <div class="fb-pts" id="fbP"></div>
+    <div class="fb-exp" id="fbE"></div>
+    <button class="btn-next" onclick="nextQ()">Próximo →</button>
+  </div>
+</div>
+
+<!-- PHASE TRANSITION -->
+<div id="phase-trans">
+  <div class="pt-emoji" id="ptE">🚀</div>
+  <div class="pt-title" id="ptT">Nível 1 Completo!</div>
+  <div class="pt-sub" id="ptS">Prepare-se para o próximo nível!</div>
+  <div class="pt-score" id="ptSc"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-rocket">🚀</div>
+  <div class="res-title" id="resT">Missão Cumprida!</div>
+  <div class="res-score" id="resSc">0</div>
+  <div class="res-lbl">pontos</div>
+  <div class="res-stats">
+    <div class="rs"><div class="rs-num" id="resC">0</div><div class="rs-lbl">Acertos</div></div>
+    <div class="rs"><div class="rs-num" id="resW">0</div><div class="rs-lbl">Erros</div></div>
+    <div class="rs"><div class="rs-num" id="resMx">0</div><div class="rs-lbl">Maior Seq.</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" onclick="startGame()">🔄 Jogar Novamente</button>
+    <a href="../index.html" class="btn-s">🏠 Menu Principal</a>
+  </div>
+</div>
+
+<script>
+// ---- QUESTIONS ----
+const LEVELS = [
+  {
+    name: "Nível 1 — Sistema Solar 🌍",
+    badge: "Nível 1 — Sistema Solar · 3º Ano",
+    time: 15,
+    planet: "🌍",
+    questions: [
+      { ctx:"A Terra tem 8 planetas vizinhos.", vis:"🌍🌙⭐", text:"Quantos planetas existem no Sistema Solar?", opts:["7","8","9","10"], ans:1, exp:"O Sistema Solar tem 8 planetas: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno." },
+      { ctx:"", vis:"🍎🍎🍎", text:"345 + 237 = ?", opts:["572","582","682","592"], ans:1, exp:"345 + 237 = 582. Somando: 5+7=12 (escreve 2, vai 1); 4+3+1=8; 3+2=5. Resultado: 582." },
+      { ctx:"", vis:"🚀", text:"800 − 365 = ?", opts:["435","445","535","425"], ans:0, exp:"800 − 365 = 435. Subtração com empréstimo: 0−5 (empréstimo), 10−5=5; 9−6=3 (com empréstimo); 7−3=4." },
+      { ctx:"Na nave há 4 fileiras com 6 assentos cada.", vis:"💺💺💺", text:"Quantos assentos no total?", opts:["20","22","24","26"], ans:2, exp:"4 × 6 = 24. Multiplicação: 4 grupos de 6 = 6+6+6+6 = 24 assentos." },
+      { ctx:"", vis:"⭐⭐⭐", text:"7 × 8 = ?", opts:["54","56","58","64"], ans:1, exp:"7 × 8 = 56. Tabuada do 7: 7,14,21,28,35,42,49,56." },
+      { ctx:"Temos 3 dúzias de estrelas.", vis:"✨", text:"Quantas estrelas são?", opts:["24","30","36","42"], ans:2, exp:"1 dúzia = 12. Então 3 × 12 = 36 estrelas." },
+      { ctx:"", vis:"🔢", text:"Qual é o dobro de 48?", opts:["86","94","96","98"], ans:2, exp:"O dobro de 48 é 48 × 2 = 96." },
+      { ctx:"Uma viagem espacial leva 5 dias. Já se passaram 3.", vis:"📅", text:"Quantos dias faltam?", opts:["1","2","3","4"], ans:1, exp:"5 − 3 = 2 dias ainda faltam para a viagem terminar." },
+      { ctx:"", vis:"🔢", text:"456 + 389 = ?", opts:["835","845","845","845"], ans:1, exp:"456 + 389 = 845. Some centenas, dezenas e unidades com os devidos transportes." },
+      { ctx:"3 astronautas têm 9 caixas de comida cada.", vis:"👨‍🚀🍱", text:"Total de caixas:", opts:["27","25","30","18"], ans:0, exp:"3 × 9 = 27 caixas. 9+9+9 = 27." },
+      { ctx:"", vis:"⭐", text:"9 × 7 = ?", opts:["54","61","63","67"], ans:2, exp:"9 × 7 = 63. Na tabuada do 9: 9,18,27,36,45,54,63." },
+      { ctx:"A nave tem 720 litros de combustível. Usou 480.", vis:"⛽", text:"Quanto sobrou?", opts:["140","240","280","300"], ans:1, exp:"720 − 480 = 240 litros restantes." },
+      { ctx:"Há 6 planetas com 4 luas cada.", vis:"🌕", text:"Total de luas:", opts:["20","22","24","28"], ans:2, exp:"6 × 4 = 24 luas no total." },
+      { ctx:"", vis:"🔢", text:"Qual é a metade de 150?", opts:["65","70","75","80"], ans:2, exp:"150 ÷ 2 = 75. A metade divide por 2." },
+      { ctx:"São 4h30 de manhã. Partiram 3h15 atrás.", vis:"⏰", text:"Que horas partiram?", opts:["0h45","1h00","1h15","1h30"], ans:2, exp:"4h30 − 3h15 = 1h15. Subtraindo horas e minutos separadamente." },
+    ]
+  },
+  {
+    name: "Nível 2 — Anel de Saturno 🪐",
+    badge: "Nível 2 — Anel de Saturno · 4º Ano",
+    time: 12,
+    planet: "🪐",
+    questions: [
+      { ctx:"Saturno tem 146 luas conhecidas.", vis:"🌕🌑🌓", text:"84 ÷ 7 = ?", opts:["11","12","13","14"], ans:1, exp:"84 ÷ 7 = 12. Verifique: 7 × 12 = 84. ✓" },
+      { ctx:"", vis:"🍕", text:"¹⁄₂ de 240 = ?", opts:["100","110","120","130"], ans:2, exp:"Metade de 240 = 240 ÷ 2 = 120." },
+      { ctx:"", vis:"🪐", text:"135 ÷ 9 = ?", opts:["13","14","15","16"], ans:2, exp:"135 ÷ 9 = 15. Verifique: 9 × 15 = 135. ✓" },
+      { ctx:"Temos 3/4 de uma pizza espacial.", vis:"🍕🍕🍕", text:"Qual fração representa o que falta?", opts:["1/4","2/4","1/3","2/3"], ans:0, exp:"3/4 + 1/4 = 4/4 = 1 inteiro. Então falta 1/4." },
+      { ctx:"", vis:"📐", text:"Um quadrado tem lado 12cm. Qual é o seu perímetro?", opts:["36cm","44cm","48cm","52cm"], ans:2, exp:"Perímetro = 4 × lado = 4 × 12 = 48cm." },
+      { ctx:"", vis:"🔢", text:"2.456 + 1.789 = ?", opts:["4.145","4.235","4.245","4.345"], ans:2, exp:"2.456 + 1.789 = 4.245. Somando com os transportes nas ordens." },
+      { ctx:"", vis:"🍕", text:"Qual é maior: 3/8 ou 1/2?", opts:["3/8","1/2","São iguais","Impossível dizer"], ans:1, exp:"1/2 = 4/8. Como 4/8 > 3/8, então 1/2 é maior." },
+      { ctx:"Uma nave percorreu 4.500km em 9 horas.", vis:"🚀💨", text:"Quantos km por hora?", opts:["400","450","500","550"], ans:2, exp:"4500 ÷ 9 = 500 km por hora." },
+      { ctx:"", vis:"📦", text:"144 ÷ 12 = ?", opts:["10","11","12","14"], ans:2, exp:"144 ÷ 12 = 12. A dúzia de dúzias!" },
+      { ctx:"", vis:"🔢", text:"¹⁄₄ de 360 = ?", opts:["70","80","90","100"], ans:2, exp:"360 ÷ 4 = 90. Um quarto de 360 é 90." },
+      { ctx:"Retângulo com base 15cm e altura 8cm.", vis:"📐", text:"Qual é a área?", opts:["92cm²","100cm²","115cm²","120cm²"], ans:3, exp:"Área = base × altura = 15 × 8 = 120cm²." },
+      { ctx:"", vis:"🍕", text:"2/3 + 1/3 = ?", opts:["3/6","3/3","2/3","4/3"], ans:1, exp:"2/3 + 1/3 = 3/3 = 1 inteiro. Quando os denominadores são iguais, somamos apenas os numeradores." },
+      { ctx:"São 7h45. A aula começa em 1h30.", vis:"⏰", text:"Que horas começa a aula?", opts:["8h45","9h00","9h15","9h30"], ans:2, exp:"7h45 + 1h30 = 7h75 = 8h15. Espera, 7+1=8h, 45+30=75 min = 1h15min, então 8h+1h15=9h15." },
+      { ctx:"", vis:"💰", text:"R$85,60 ÷ 4 pessoas = ?", opts:["R$20,40","R$21,20","R$21,40","R$22,40"], ans:2, exp:"85,60 ÷ 4 = 21,40. Divida: 84 ÷ 4 = 21 e 1,60 ÷ 4 = 0,40. Total: R$21,40." },
+      { ctx:"", vis:"🔢", text:"3/5 de 100 = ?", opts:["30","50","60","75"], ans:2, exp:"3/5 de 100 = (100 ÷ 5) × 3 = 20 × 3 = 60." },
+    ]
+  },
+  {
+    name: "Nível 3 — Estrelas Distantes ⭐",
+    badge: "Nível 3 — Estrelas Distantes · 5º Ano",
+    time: 10,
+    planet: "⭐",
+    questions: [
+      { ctx:"", vis:"📊", text:"75% de 200 = ?", opts:["100","125","150","175"], ans:2, exp:"75% = 75/100 = 3/4. Então 3/4 de 200 = 150." },
+      { ctx:"", vis:"🔢", text:"0,5 + 0,75 = ?", opts:["0,125","1,0","1,25","1,5"], ans:2, exp:"0,5 + 0,75 = 1,25. Some como números decimais." },
+      { ctx:"Uma estrela pulsa a cada 2,5 segundos.", vis:"💫", text:"Em 1 minuto, quantas pulsações?", opts:["20","22","24","25"], ans:2, exp:"1 minuto = 60s. 60 ÷ 2,5 = 24 pulsações." },
+      { ctx:"", vis:"📐", text:"Triângulo base 10cm, altura 8cm. Área = ?", opts:["40cm²","60cm²","80cm²","100cm²"], ans:0, exp:"Área triângulo = (base × altura) ÷ 2 = (10 × 8) ÷ 2 = 80 ÷ 2 = 40cm²." },
+      { ctx:"", vis:"🔢", text:"2,4 × 5 = ?", opts:["10","11","12","12,5"], ans:2, exp:"2,4 × 5 = 12. Pense: 24 × 5 = 120, depois desloca a vírgula: 12,0." },
+      { ctx:"", vis:"💰", text:"Desconto de 20% em R$150. Preço final:", opts:["R$100","R$110","R$120","R$130"], ans:2, exp:"20% de 150 = 30. 150 − 30 = R$120." },
+      { ctx:"", vis:"📊", text:"Em que ordem: 0,3 ; 1/2 ; 0,45 ; 2/5?", opts:["0,3 < 2/5 < 0,45 < 1/2","0,3 < 0,45 < 2/5 < 1/2","2/5 < 0,3 < 0,45 < 1/2","0,3 < 2/5 < 1/2 < 0,45"], ans:0, exp:"2/5=0,4; 1/2=0,5. Ordem: 0,3 < 0,4 < 0,45 < 0,5. Logo 0,3 < 2/5 < 0,45 < 1/2." },
+      { ctx:"Nave viaja 360km em 4h. Depois mais 270km em 3h.", vis:"🚀", text:"Qual velocidade foi maior?", opts:["1ª viagem (90km/h)","2ª viagem (90km/h)","Iguais","Não dá pra saber"], ans:2, exp:"1ª: 360÷4=90km/h. 2ª: 270÷3=90km/h. Iguais! Ambas a 90km/h." },
+      { ctx:"", vis:"🔢", text:"15% de 80 = ?", opts:["10","11","12","15"], ans:2, exp:"10% de 80 = 8. 5% = 4. 15% = 8+4 = 12." },
+      { ctx:"", vis:"📐", text:"Cilindro: base circular raio 5cm, altura 10cm. Volume ≈", opts:["250π cm³","785 cm³","1000 cm³","157 cm³"], ans:1, exp:"V = π × r² × h = π × 25 × 10 = 250π ≈ 785 cm³ (π ≈ 3,14)." },
+      { ctx:"", vis:"📊", text:"Sequência: 2, 6, 18, 54, ___", opts:["108","162","216","324"], ans:1, exp:"Cada número é multiplicado por 3: 2×3=6, 6×3=18, 18×3=54, 54×3=162." },
+      { ctx:"", vis:"🔢", text:"(-3) + (+8) = ?", opts:["-5","5","-11","11"], ans:1, exp:"Números com sinais opostos: 8 − 3 = 5. Como o maior tem sinal +, o resultado é +5." },
+      { ctx:"", vis:"💰", text:"Lucro de 30% sobre custo R$200. Preço de venda:", opts:["R$230","R$240","R$260","R$280"], ans:2, exp:"30% de 200 = 60. Preço = custo + lucro = 200 + 60 = R$260." },
+      { ctx:"", vis:"📊", text:"Média de 7, 9, 8, 6, 10 = ?", opts:["7","7,5","8","8,5"], ans:2, exp:"Média = soma ÷ quantidade = (7+9+8+6+10) ÷ 5 = 40 ÷ 5 = 8." },
+      { ctx:"", vis:"🔢", text:"2³ = ?", opts:["6","8","9","12"], ans:1, exp:"2³ = 2 × 2 × 2 = 8. Potenciação: o expoente diz quantas vezes multiplicamos a base por ela mesma." },
+    ]
+  }
+];
+
+let st = { level:0, qIdx:0, score:0, lives:3, streak:0, maxStreak:0, correct:0, wrong:0, timerInt:null, timeLeft:15 };
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  st = { level:0, qIdx:0, score:0, lives:3, streak:0, maxStreak:0, correct:0, wrong:0, timerInt:null, timeLeft:15 };
+  showScreen('game');
+  loadQ();
+}
+
+function loadQ() {
+  const lv = LEVELS[st.level];
+  const q = lv.questions[st.qIdx];
+  document.getElementById('lvBadge').textContent = lv.badge;
+  document.getElementById('qCtx').textContent = q.ctx;
+  document.getElementById('qVis').textContent = q.vis;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qSub').textContent = '';
+
+  const grid = document.getElementById('optGrid');
+  grid.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = o;
+    btn.onclick = () => pickAns(i, btn);
+    grid.appendChild(btn);
+  });
+
+  const card = document.getElementById('qCard');
+  card.style.animation='none'; card.offsetHeight; card.style.animation='card-in .4s ease';
+
+  updateHUD();
+  startTimer(lv.time);
+}
+
+function updateHUD() {
+  document.getElementById('scoreD').textContent = st.score;
+  document.getElementById('livesD').textContent = '❤'.repeat(st.lives)+'🖤'.repeat(3-st.lives);
+  document.getElementById('levelD').textContent = `${st.level+1}/3`;
+  document.getElementById('streakD').textContent = `🔥${st.streak}`;
+  const total = LEVELS.reduce((a,l)=>a+l.questions.length,0);
+  const done = LEVELS.slice(0,st.level).reduce((a,l)=>a+l.questions.length,0)+st.qIdx;
+  document.getElementById('progFill').style.width = `${(done/total)*100}%`;
+}
+
+function startTimer(s) {
+  clearInterval(st.timerInt); st.timeLeft = s; updateTimer(s,s);
+  st.timerInt = setInterval(() => {
+    st.timeLeft--;
+    updateTimer(st.timeLeft, s);
+    if (st.timeLeft <= 0) { clearInterval(st.timerInt); timeOut(); }
+  }, 1000);
+}
+
+function updateTimer(t, max) {
+  document.getElementById('tTxt').textContent = t;
+  const arc = document.getElementById('tArc');
+  arc.style.strokeDashoffset = 138*(1-t/max);
+  arc.style.stroke = t<=3?'#EF4444':t<=6?'#F59E0B':'#F97316';
+  document.getElementById('tTxt').style.color = t<=3?'#EF4444':'white';
+}
+
+function timeOut() {
+  const q = LEVELS[st.level].questions[st.qIdx];
+  st.lives--; st.streak=0; st.wrong++;
+  showFeedback(false, q, 0, true);
+}
+
+function pickAns(idx, btn) {
+  clearInterval(st.timerInt);
+  const q = LEVELS[st.level].questions[st.qIdx];
+  const correct = idx === q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b,i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === idx && !correct) b.classList.add('wrong');
+  });
+  let pts = 0;
+  if (correct) {
+    pts = 10 + st.timeLeft*2;
+    if (st.streak>=2) pts = Math.floor(pts*(1+st.streak*.2));
+    st.score+=pts; st.streak++; st.maxStreak=Math.max(st.maxStreak,st.streak); st.correct++;
+  } else { st.lives--; st.streak=0; st.wrong++; }
+  setTimeout(()=>showFeedback(correct,q,pts,false),400);
+}
+
+function showFeedback(correct,q,pts,timeout) {
+  const fb = document.getElementById('feedback');
+  fb.classList.add('active');
+  document.getElementById('fbI').textContent = timeout?'⏰':correct?'🎉':'❌';
+  document.getElementById('fbT').textContent = timeout?'Tempo Esgotado!':correct?'CORRETO!':'ERRADO!';
+  document.getElementById('fbT').className = 'fb-title '+(correct?'fb-correct':'fb-wrong');
+  document.getElementById('fbP').textContent = correct
+    ?`+${pts} pontos! ${st.streak>1?'🔥 x'+st.streak:''}` : `Resposta: ${q.opts[q.ans]}`;
+  document.getElementById('fbE').textContent = q.exp;
+  if (correct && !timeout) setTimeout(()=>{ if(fb.classList.contains('active')) nextQ(); }, 2800);
+}
+
+function nextQ() {
+  document.getElementById('feedback').classList.remove('active');
+  if (st.lives<=0) { showResults(); return; }
+  st.qIdx++;
+  if (st.qIdx >= LEVELS[st.level].questions.length) {
+    if (st.level < LEVELS.length-1) showPhaseTrans();
+    else showResults();
+  } else loadQ();
+}
+
+function showPhaseTrans() {
+  const pt = document.getElementById('phase-trans');
+  pt.classList.add('active');
+  const emojis=['🌍','🪐','⭐'];
+  document.getElementById('ptE').textContent = emojis[st.level];
+  document.getElementById('ptT').textContent = `Nível ${st.level+1} Completo! ${emojis[st.level]}`;
+  document.getElementById('ptS').textContent = 'Próximo nível ficou mais difícil!';
+  document.getElementById('ptSc').textContent = `🌟 ${st.score} pontos`;
+  setTimeout(()=>{ pt.classList.remove('active'); st.level++; st.qIdx=0; loadQ(); }, 2800);
+}
+
+function showResults() {
+  showScreen('results');
+  const pct = Math.round((st.correct/(st.correct+st.wrong||1))*100);
+  let title='Missão Cumprida! 🚀';
+  if(pct<50) title='Continue Praticando! 📚';
+  else if(pct<70) title='Bom Trabalho! ⭐';
+  else if(pct<90) title='Excelente, Matemático! 🏆';
+  else title='PERFEITO! Gênio da Matemática! 🎯';
+  document.getElementById('resT').textContent=title;
+  document.getElementById('resSc').textContent=st.score;
+  document.getElementById('resC').textContent=st.correct;
+  document.getElementById('resW').textContent=st.wrong;
+  document.getElementById('resMx').textContent=st.maxStreak;
+  localStorage.setItem('hs_matematica', st.score);
+}
+
+// Decorative stars
+for(let i=0;i<60;i++){
+  const s=document.createElement('span');
+  s.textContent=['✦','✧','⋆','☆','★'][Math.floor(Math.random()*5)];
+  s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;position:fixed;font-size:${.5+Math.random()*.8}rem;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s;opacity:.3`;
+  document.getElementById('starsD').appendChild(s);
+}
+</script>
+</body>
+</html>

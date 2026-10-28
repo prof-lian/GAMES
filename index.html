@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduPlay — Jogos Educativos</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #3B82F6; --green: #22C55E; --orange: #F97316;
+    --purple: #A855F7; --red: #EF4444; --yellow: #EAB308;
+    --dark: #1E293B; --light: #F8FAFC;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: white;
+  }
+
+  /* Animated stars */
+  .stars {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  .star {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle 3s infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  header {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 40px 20px 20px;
+  }
+
+  .logo {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, #60A5FA, #A78BFA, #34D399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .subtitle {
+    color: #94A3B8;
+    font-size: 1.1rem;
+    margin-top: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .bncc-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #7C3AED, #4F46E5);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 20px rgba(124,58,237,0.5);
+  }
+
+  .grade-info {
+    color: #64748B;
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  /* Grid of games */
+  .games-section {
+    position: relative; z-index: 1;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #94A3B8;
+    margin-bottom: 32px;
+    font-weight: 400;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .game-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: white;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .game-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--card-color);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 20px;
+  }
+
+  .game-card:hover::before { opacity: 0.1; }
+
+  .game-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--card-color);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px var(--glow);
+  }
+
+  .card-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    display: block;
+    animation: bob 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  @keyframes bob {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+  .game-card:hover .card-icon {
+    animation: spin-bounce 0.5s ease;
+  }
+  @keyframes spin-bounce {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.3) rotate(20deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  .card-number {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(255,255,255,0.1);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #94A3B8;
+  }
+
+  .card-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .card-desc {
+    color: #94A3B8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .card-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .tag {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .play-btn {
+    background: var(--card-color);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px var(--glow);
+  }
+  .play-btn:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05);
+  }
+
+  .card-meta {
+    font-size: 0.8rem;
+    color: #64748B;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* Highscore from localStorage */
+  .highscore-badge {
+    background: linear-gradient(90deg, #F59E0B, #EF4444);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #334155;
+    font-size: 0.85rem;
+  }
+
+  /* Particles */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.5rem;
+    animation: particle-float 8s linear infinite;
+    z-index: 0;
+    opacity: 0.3;
+  }
+  @keyframes particle-float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.3; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .games-grid { grid-template-columns: 1fr; }
+    header { padding: 30px 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="stars" id="stars"></div>
+
+<header>
+  <div class="logo">🎮 EduPlay</div>
+  <div class="subtitle">Plataforma de Jogos Educativos</div>
+  <div class="bncc-badge">✨ Alinhado à BNCC</div>
+  <div class="grade-info">3º ao 5º ano do Ensino Fundamental · Aulas de Informática</div>
+</header>
+
+<div class="games-section">
+  <p class="section-title">Escolha um jogo para começar a aventura! 🚀</p>
+
+  <div class="games-grid">
+
+    <!-- Game 1 -->
+    <a href="games/afunda-flutua.html" class="game-card"
+       style="--card-color:#06B6D4; --glow:rgba(6,182,212,0.3)">
+      <div class="card-number">1</div>
+      <span class="card-icon">🌊</span>
+      <div class="card-title">Afunda ou Flutua?</div>
+      <div class="card-desc">Descubra se os objetos afundam ou flutuam! 30 desafios com objetos surpreendentes.</div>
+      <div class="card-tags">
+        <span class="tag">🔬 Ciências</span>
+        <span class="tag">EF04CI01</span>
+        <span class="tag">3 Fases</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn" style="background:#06B6D4">▶ Jogar</button>
+        <div class="card-meta" id="score1">30 perguntas<br>⏱ ~45 min</div>
+      </div>
+    </a>
+
+    <!-- Game 2 -->
+    <a href="games/matematica.html" class="game-card"
+       style="--card-color:#F97316; --glow:rgba(249,115,22,0.3)">
+      <div class="card-number">2</div>
+      <span class="card-icon">🚀</span>
+      <div class="card-title">Aventura Matemática</div>
+      <div class="card-desc">Salve a galáxia resolvendo equações! Adição, multiplicação, frações e muito mais.</div>
+      <div class="card-tags">
+        <span class="tag">🔢 Matemática</span>
+        <span class="tag">EF03MA·EF05MA</span>
+        <span class="tag">3 Níveis</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn" style="background:#F97316">▶ Jogar</button>
+        <div class="card-meta" id="score2">45 perguntas<br>⏱ ~50 min</div>
+      </div>
+    </a>
+
+    <!-- Game 3 -->
+    <a href="games/ortografia.html" class="game-card"
+       style="--card-color:#A855F7; --glow:rgba(168,85,247,0.3)">
+      <div class="card-number">3</div>
+      <span class="card-icon">🧙</span>
+      <div class="card-title">Feitiço das Palavras</div>
+      <div class="card-desc">O mago perdeu as letras mágicas! Complete as palavras e restaure os feitiços.</div>
+      <div class="card-tags">
+        <span class="tag">📝 Português</span>
+        <span class="tag">EF03LP·EF05LP</span>
+        <span class="tag">Ortografia</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn" style="background:#A855F7">▶ Jogar</button>
+        <div class="card-meta" id="score3">36 palavras<br>⏱ ~40 min</div>
+      </div>
+    </a>
+
+    <!-- Game 4 -->
+    <a href="games/ciencias.html" class="game-card"
+       style="--card-color:#22C55E; --glow:rgba(34,197,94,0.3)">
+      <div class="card-number">4</div>
+      <span class="card-icon">🌿</span>
+      <div class="card-title">Mundo dos Seres Vivos</div>
+      <div class="card-desc">Explore ecossistemas, cadeias alimentares e o ciclo da vida na natureza!</div>
+      <div class="card-tags">
+        <span class="tag">🔬 Ciências</span>
+        <span class="tag">EF04CI05·EF05CI04</span>
+        <span class="tag">Ecologia</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn" style="background:#22C55E">▶ Jogar</button>
+        <div class="card-meta" id="score4">45 perguntas<br>⏱ ~50 min</div>
+      </div>
+    </a>
+
+    <!-- Game 5 -->
+    <a href="games/geografia.html" class="game-card"
+       style="--card-color:#EAB308; --glow:rgba(234,179,8,0.3)">
+      <div class="card-number">5</div>
+      <span class="card-icon">🗺️</span>
+      <div class="card-title">Viagem pelo Brasil</div>
+      <div class="card-desc">Embarque numa aventura pelo nosso país! Estados, regiões, cultura e natureza.</div>
+      <div class="card-tags">
+        <span class="tag">🌎 Geografia</span>
+        <span class="tag">EF03GE·EF05GE</span>
+        <span class="tag">Brasil</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn" style="background:#EAB308; color:#000">▶ Jogar</button>
+        <div class="card-meta" id="score5">45 perguntas<br>⏱ ~50 min</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<footer>
+  EduPlay · Desenvolvido para aulas de Informática · Alinhado à Base Nacional Comum Curricular (BNCC)
+</footer>
+
+<script>
+  // Stars
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 3 + 1;
+    star.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      animation-delay:${Math.random()*3}s;
+      animation-duration:${2+Math.random()*4}s;
+    `;
+    starsContainer.appendChild(star);
+  }
+
+  // Floating particles
+  const emojis = ['📚','⭐','🎯','💡','🏆','🎈','✨'];
+  emojis.forEach((e, i) => {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = e;
+    p.style.cssText = `
+      left:${10+i*14}%;
+      animation-delay:${i*1.2}s;
+      animation-duration:${8+Math.random()*4}s;
+    `;
+    document.body.appendChild(p);
+  });
+
+  // Show highscores
+  const games = ['afunda-flutua','matematica','ortografia','ciencias','geografia'];
+  games.forEach((g, i) => {
+    const score = localStorage.getItem(`hs_${g}`);
+    if (score) {
+      const el = document.getElementById(`score${i+1}`);
+      if (el) {
+        el.innerHTML += `<br><span class="highscore-badge">🏆 Recorde: ${score}</span>`;
+      }
+    }
+  });
+</script>
+</body>
+</html>

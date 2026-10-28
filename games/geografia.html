@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viagem pelo Brasil 🗺️</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#1C0A00;color:white;min-height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 50% 30%,#2A1500 0%,#1C0A00 60%);z-index:-1}
+
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+
+/* INTRO */
+#intro{text-align:center}
+.plane{font-size:5rem;animation:fly 3s ease-in-out infinite}
+@keyframes fly{0%{transform:translateX(-10px) rotate(-5deg)}50%{transform:translateX(10px) rotate(5deg)}100%{transform:translateX(-10px) rotate(-5deg)}}
+.intro-title{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;color:#EAB308;margin-bottom:8px}
+.intro-sub{color:#94A3B8;font-size:1rem;max-width:480px;margin:0 auto 16px;line-height:1.6}
+.bncc{background:rgba(234,179,8,.12);border:1px solid #EAB308;padding:8px 18px;
+      border-radius:12px;color:#FEF3C7;font-size:.82rem;margin-bottom:20px;display:inline-block}
+.regions{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.region-chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+             padding:8px 14px;border-radius:10px;font-size:.78rem;color:#FCD34D;display:flex;align-items:center;gap:5px}
+.btn-start{background:linear-gradient(90deg,#B45309,#EAB308);border:none;color:#1C0A00;
+           padding:16px 48px;border-radius:16px;font-size:1.2rem;font-weight:800;cursor:pointer;
+           transition:all .2s;box-shadow:0 8px 24px rgba(234,179,8,.4)}
+.btn-start:hover{transform:scale(1.05) translateY(-2px)}
+.btn-back{background:none;border:1px solid #451A03;color:#92400E;padding:8px 20px;
+          border-radius:8px;cursor:pointer;font-size:.85rem;margin-top:12px;transition:all .2s}
+.btn-back:hover{border-color:#EAB308;color:#FCD34D}
+
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
+     justify-content:space-between;padding:12px 20px;background:rgba(0,0,0,.55);
+     backdrop-filter:blur(8px);z-index:10;gap:8px;flex-wrap:wrap}
+.hud-item{display:flex;flex-direction:column;align-items:center;min-width:55px}
+.hud-label{font-size:.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px}
+.hud-val{font-size:1.1rem;font-weight:800}
+.sv{color:#EAB308}.lv{color:#EF4444;font-size:1.3rem}.pv{color:#FCD34D}.stv{color:#F59E0B}
+.timer-wrap{position:relative;width:52px;height:52px}
+.timer-svg{transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:#451A03;stroke-width:4}
+.t-arc{fill:none;stroke:#EAB308;stroke-width:4;stroke-linecap:round;
+       stroke-dasharray:138;stroke-dashoffset:0;transition:stroke-dashoffset .1s}
+.t-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1rem;font-weight:800;color:white}
+.progress-bar{position:absolute;top:68px;left:0;right:0;height:4px;background:#451A03;z-index:10}
+.progress-fill{height:100%;background:linear-gradient(90deg,#B45309,#EAB308,#FCD34D);transition:width .5s ease;border-radius:2px}
+
+/* GAME */
+#game{position:relative;padding:0}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+           padding:80px 20px 20px;gap:18px;position:relative;z-index:1}
+.phase-badge{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);
+             padding:6px 18px;border-radius:20px;color:#FCD34D;font-size:.85rem;font-weight:600}
+
+.q-card{background:rgba(255,255,255,.04);border:2px solid rgba(234,179,8,.2);
+        border-radius:24px;padding:24px 34px;text-align:center;backdrop-filter:blur(10px);
+        animation:card-in .4s ease;max-width:560px;width:100%}
+@keyframes card-in{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.q-emoji{font-size:3rem;margin-bottom:8px;display:block}
+.q-tag{font-size:.72rem;color:#B45309;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.q-text{font-size:clamp(.95rem,2.3vw,1.2rem);font-weight:700;line-height:1.5;margin-bottom:4px}
+.fun-fact{background:rgba(234,179,8,.08);border-left:3px solid #EAB308;
+           padding:8px 12px;border-radius:0 8px 8px 0;color:#FEF3C7;font-size:.78rem;
+           text-align:left;margin-top:6px;line-height:1.4;display:none}
+
+.opts-col{display:flex;flex-direction:column;gap:9px;max-width:520px;width:100%}
+.opt-btn{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);
+         border-radius:14px;padding:13px 18px;font-size:.95rem;font-weight:600;color:white;
+         cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:10px}
+.opt-btn:hover:not(:disabled){background:rgba(234,179,8,.12);border-color:#EAB308}
+.opt-btn.correct{background:rgba(34,197,94,.18)!important;border-color:#22C55E!important;color:#22C55E!important}
+.opt-btn.wrong{background:rgba(239,68,68,.15)!important;border-color:#EF4444!important;color:#EF4444!important}
+.opt-btn:disabled{cursor:default}
+.opt-letter{background:rgba(255,255,255,.08);width:28px;height:28px;border-radius:8px;
+            display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0}
+
+/* Feedback */
+.feedback{position:absolute;top:0;left:0;right:0;bottom:0;display:none;
+          flex-direction:column;align-items:center;justify-content:center;
+          z-index:20;background:rgba(0,0,0,.78);backdrop-filter:blur(4px)}
+.feedback.active{display:flex}
+.fb-icon{font-size:5rem;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fb-title{font-size:2rem;font-weight:900;margin:10px 0}
+.fb-correct{color:#22C55E}.fb-wrong{color:#EF4444}
+.fb-pts{color:#F59E0B;font-size:1.1rem;font-weight:700}
+.fb-exp{background:rgba(255,255,255,.06);border:1px solid rgba(234,179,8,.2);
+        padding:14px 22px;border-radius:14px;color:#CBD5E1;font-size:.9rem;
+        max-width:440px;text-align:center;line-height:1.6;margin:8px 20px}
+.btn-next{background:#EAB308;border:none;color:#1C0A00;padding:12px 36px;border-radius:12px;
+          font-size:1rem;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
+.btn-next:hover{transform:scale(1.05)}
+
+/* Phase trans */
+#phase-trans{position:fixed;top:0;left:0;right:0;bottom:0;background:#1C0A00;display:none;
+             flex-direction:column;align-items:center;justify-content:center;z-index:100;text-align:center}
+#phase-trans.active{display:flex}
+.pt-emoji{font-size:5rem;animation:fly 2s ease-in-out infinite;margin-bottom:16px}
+.pt-title{font-size:2.5rem;font-weight:900;color:#EAB308}
+.pt-sub{color:#94A3B8;margin-top:8px}
+.pt-score{font-size:1.5rem;font-weight:700;color:#F59E0B;margin-top:14px}
+
+/* RESULTS */
+#results{text-align:center}
+.res-icon{font-size:5rem;animation:fly 2s ease-in-out infinite}
+.res-title{font-size:2.5rem;font-weight:900;margin:16px 0 6px}
+.res-score{font-size:4rem;font-weight:900;color:#EAB308}
+.res-lbl{color:#64748B;font-size:.9rem}
+.res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px auto;max-width:380px}
+.rs{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px;border-radius:14px}
+.rs-num{font-size:1.8rem;font-weight:800;color:#FCD34D}
+.rs-lbl{font-size:.7rem;color:#64748B;text-transform:uppercase;margin-top:4px}
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn-p{background:#EAB308;border:none;color:#1C0A00;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+.btn-p:hover{transform:scale(1.05)}
+.btn-s{background:none;border:1px solid #451A03;color:#94A3B8;padding:14px 32px;border-radius:14px;font-size:1rem;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-s:hover{border-color:#EAB308;color:white}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="plane">✈️</div>
+  <div class="intro-title">Viagem pelo Brasil</div>
+  <div class="intro-sub">Embarque numa aventura inesquecível pelo nosso país! Conheça estados, regiões, capitais, cultura e as maravilhas naturais do Brasil!</div>
+  <div class="bncc">📚 Geografia · EF03GE · EF04GE · EF05GE · 3º ao 5º ano</div>
+  <div class="regions">
+    <div class="region-chip">🟢 Norte</div>
+    <div class="region-chip">🟡 Nordeste</div>
+    <div class="region-chip">🔵 Centro-Oeste</div>
+    <div class="region-chip">🔴 Sudeste</div>
+    <div class="region-chip">⚪ Sul</div>
+  </div>
+  <button class="btn-start" onclick="startGame()">✈️ Decolar para o Brasil!</button>
+  <a href="../index.html" style="text-decoration:none"><button class="btn-back">← Menu Principal</button></a>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game" style="position:relative">
+  <div class="hud">
+    <div class="hud-item"><span class="hud-label">Pontos</span><span class="hud-val sv" id="scoreD">0</span></div>
+    <div class="hud-item"><span class="hud-label">Vidas</span><span class="hud-val lv" id="livesD">❤❤❤</span></div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="t-bg" cx="26" cy="26" r="22"/>
+        <circle class="t-arc" id="tArc" cx="26" cy="26" r="22"/>
+      </svg>
+      <div class="t-txt" id="tTxt">15</div>
+    </div>
+    <div class="hud-item"><span class="hud-label">Parada</span><span class="hud-val pv" id="phaseD">1/3</span></div>
+    <div class="hud-item"><span class="hud-label">Streak</span><span class="hud-val stv" id="streakD">🔥0</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="game-area">
+    <div class="phase-badge" id="phaseBadge">Parada 1 — Regiões e Estados do Brasil</div>
+    <div class="q-card" id="qCard">
+      <span class="q-emoji" id="qEmoji">🗺️</span>
+      <div class="q-tag" id="qTag">Regiões</div>
+      <div class="q-text" id="qText">Quantas regiões tem o Brasil?</div>
+      <div class="fun-fact" id="funFact"></div>
+    </div>
+    <div class="opts-col" id="optsCol"></div>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fbI">✅</div>
+    <div class="fb-title" id="fbT">CORRETO!</div>
+    <div class="fb-pts" id="fbP"></div>
+    <div class="fb-exp" id="fbE"></div>
+    <button class="btn-next" onclick="nextQ()">Próxima Parada →</button>
+  </div>
+</div>
+
+<!-- PHASE TRANSITION -->
+<div id="phase-trans">
+  <div class="pt-emoji" id="ptE">✈️</div>
+  <div class="pt-title" id="ptT">Parada Completa!</div>
+  <div class="pt-sub" id="ptS">Próxima parada da viagem!</div>
+  <div class="pt-score" id="ptSc"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-icon">🗺️</div>
+  <div class="res-title" id="resT">Explorador do Brasil!</div>
+  <div class="res-score" id="resSc">0</div>
+  <div class="res-lbl">pontos</div>
+  <div class="res-stats">
+    <div class="rs"><div class="rs-num" id="resC">0</div><div class="rs-lbl">Acertos</div></div>
+    <div class="rs"><div class="rs-num" id="resW">0</div><div class="rs-lbl">Erros</div></div>
+    <div class="rs"><div class="rs-num" id="resMx">0</div><div class="rs-lbl">Maior Seq.</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" onclick="startGame()">🔄 Jogar Novamente</button>
+    <a href="../index.html" class="btn-s">🏠 Menu Principal</a>
+  </div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    name:"Parada 1 — Regiões e Estados do Brasil",
+    badge:"Parada 1 — Regiões e Estados 🗺️",
+    time:15,
+    qs:[
+      { emoji:"🗺️", tag:"Regiões", text:"Em quantas regiões o Brasil está dividido?",
+        opts:["A) 3 regiões","B) 4 regiões","C) 5 regiões","D) 6 regiões"], ans:2,
+        exp:"O Brasil tem 5 regiões: Norte, Nordeste, Centro-Oeste, Sudeste e Sul. Cada região tem características geográficas, climáticas e culturais próprias!" },
+      { emoji:"🌿", tag:"Maior Estado", text:"Qual é o maior estado do Brasil em área?",
+        opts:["A) Minas Gerais","B) Mato Grosso","C) Pará","D) Amazonas"], ans:3,
+        exp:"Amazonas é o maior estado do Brasil, com mais de 1,5 milhão de km²! Praticamente do tamanho de toda a Europa Ocidental. Abriga a maior floresta tropical do mundo." },
+      { emoji:"🏙️", tag:"Capital", text:"Qual é a capital do Brasil?",
+        opts:["A) São Paulo","B) Rio de Janeiro","C) Belo Horizonte","D) Brasília"], ans:3,
+        exp:"Brasília é a capital desde 1960, quando foi construída do zero no Planalto Central! Antes era Rio de Janeiro. Brasília foi planejada pelo urbanista Lúcio Costa e pelo arquiteto Oscar Niemeyer." },
+      { emoji:"🌊", tag:"Nordeste", text:"Qual capital do Nordeste está mais ao leste, na 'saliência' do Brasil?",
+        opts:["A) Fortaleza","B) Recife","C) Natal","D) João Pessoa"], ans:3,
+        exp:"João Pessoa (PB) é a cidade mais oriental do Brasil! Fica tão a leste que é a primeira capital a ver o sol nascer. Recife é a mais populosa do Nordeste." },
+      { emoji:"🏔️", tag:"Sul", text:"Qual estado do Sul faz fronteira com Argentina e Uruguai?",
+        opts:["A) Santa Catarina","B) Paraná","C) Rio Grande do Sul","D) Mato Grosso do Sul"], ans:2,
+        exp:"O Rio Grande do Sul faz fronteira com Argentina (oeste) e Uruguai (sul). É o estado mais ao sul do Brasil, com influência gaúcha, italiana e alemã em sua cultura." },
+      { emoji:"🎭", tag:"Sudeste", text:"Quantos estados tem a Região Sudeste?",
+        opts:["A) 2 estados","B) 3 estados","C) 4 estados","D) 5 estados"], ans:2,
+        exp:"O Sudeste tem 4 estados: São Paulo, Rio de Janeiro, Minas Gerais e Espírito Santo. É a região mais populosa e economicamente mais desenvolvida do Brasil." },
+      { emoji:"🌵", tag:"Nordeste", text:"O bioma exclusivo do Nordeste brasileiro é:",
+        opts:["A) Cerrado","B) Pampa","C) Caatinga","D) Pantanal"], ans:2,
+        exp:"A Caatinga é um bioma exclusivamente brasileiro! Só existe no Nordeste. Tem vegetação adaptada à seca: cactus, mandacaru, árvores que perdem as folhas no período seco." },
+      { emoji:"🌊", tag:"Norte", text:"O Rio Amazonas deságua em qual estado?",
+        opts:["A) Amazonas","B) Pará","C) Amapá","D) Maranhão"], ans:1,
+        exp:"O Rio Amazonas deságua no Pará, na cidade de Marajó! É o maior rio do mundo em volume de água. Na foz, a largura pode chegar a 50km durante as cheias!" },
+      { emoji:"🏛️", tag:"Centro-Oeste", text:"Qual estado do Centro-Oeste tem o Pantanal?",
+        opts:["A) Goiás","B) Mato Grosso do Sul (e MS/MT)","C) Tocantins","D) Distrito Federal"], ans:1,
+        exp:"O Pantanal fica principalmente no Mato Grosso do Sul e Mato Grosso! É a maior planície alagável do mundo, com uma biodiversidade incrível: onças, tuiuiús, jacarés." },
+      { emoji:"🌿", tag:"Menor Estado", text:"Qual é o menor estado do Brasil em área?",
+        opts:["A) Sergipe","B) Alagoas","C) Rio de Janeiro","D) Espírito Santo"], ans:0,
+        exp:"Sergipe é o menor estado do Brasil! Tem apenas 21.910 km² — cabem mais de 70 Sergipes dentro do Amazonas. Fica no Nordeste, entre Bahia e Alagoas." },
+      { emoji:"🏙️", tag:"Maior Cidade", text:"Qual é a cidade mais populosa do Brasil?",
+        opts:["A) Rio de Janeiro","B) Brasília","C) São Paulo","D) Salvador"], ans:2,
+        exp:"São Paulo tem mais de 12 milhões de habitantes (Grande SP: ~22 milhões)! É a maior cidade da América do Sul e uma das maiores metrópoles do mundo." },
+      { emoji:"🌊", tag:"Litoral", text:"Qual região do Brasil tem o maior litoral?",
+        opts:["A) Norte","B) Nordeste","C) Sudeste","D) Sul"], ans:1,
+        exp:"O Nordeste tem o maior litoral do Brasil, com mais de 3.300 km de praias! Seguido pelo Norte (Pará/Amapá). O litoral total do Brasil tem cerca de 7.491 km!" },
+      { emoji:"🌿", tag:"Biomas", text:"Qual é o maior bioma do Brasil?",
+        opts:["A) Cerrado","B) Caatinga","C) Mata Atlântica","D) Amazônia"], ans:3,
+        exp:"A Amazônia cobre ~49% do território brasileiro! É o maior bioma do país e a maior floresta tropical do mundo. Abriga 10% de todas as espécies do planeta." },
+      { emoji:"🏔️", tag:"Montanhas", text:"O ponto mais alto do Brasil é o Pico da Neblina, em qual estado?",
+        opts:["A) Pará","B) Roraima","C) Amazonas","D) Acre"], ans:2,
+        exp:"O Pico da Neblina fica no Amazonas, na fronteira com a Venezuela! Tem 2.994 metros de altitude. Fica tão isolado na floresta que só foi descoberto em 1953!" },
+      { emoji:"🌊", tag:"Hidrografia", text:"O Rio São Francisco é chamado de 'o rio da integração nacional'. Por que?",
+        opts:["A) É o mais longo do Brasil","B) É o mais largo","C) Percorre vários estados do semiárido","D) Passa por Brasília"], ans:2,
+        exp:"O São Francisco nasce em MG e passa por BA, SE, AL e PE — integrando regiões diferentes! É fundamental para o abastecimento de água no sertão nordestino. Conhecida como 'Velho Chico'." },
+    ]
+  },
+  {
+    name:"Parada 2 — Cultura, Povos e Tradições",
+    badge:"Parada 2 — Cultura e Povos 🎭",
+    time:13,
+    qs:[
+      { emoji:"🎭", tag:"Carnaval", text:"O Carnaval é uma festa típica do Brasil. Qual é a origem da palavra 'carnaval'?",
+        opts:["A) Do tupi 'kara-naval'","B) Do latim 'carne vale' (adeus à carne)","C) Do italiano 'carnevale' (campo)","D) Do francês 'carnaval' (dança)"], ans:1,
+        exp:"'Carne vale' em latim significa 'adeus à carne'! O Carnaval era uma festa antes da Quaresma (período de jejum). Com o tempo, virou a grande festa popular que conhecemos!" },
+      { emoji:"🥁", tag:"Música", text:"O samba é um ritmo musical brasileiro que surgiu principalmente em:",
+        opts:["A) São Paulo, com imigrantes italianos","B) Rio de Janeiro, com influência africana","C) Bahia, com indígenas","D) Rio Grande do Sul, com gaúchos"], ans:1,
+        exp:"O samba surgiu no Rio de Janeiro no início do século XX, com forte influência da cultura africana (trazida pelos escravos). Raízes no Candomblé baiano também contribuíram." },
+      { emoji:"🎸", tag:"Música Regional", text:"O forró é um ritmo típico de qual região?",
+        opts:["A) Norte","B) Sudeste","C) Nordeste","D) Sul"], ans:2,
+        exp:"Forró é o ritmo do coração nordestino! Instrumentos clássicos: sanfona (acordeão), zabumba e triângulo. Luiz Gonzaga, o 'Rei do Baião', foi um dos maiores divulgadores!" },
+      { emoji:"👘", tag:"Culturas Imigrantes", text:"Qual estado tem a maior influência da cultura japonesa no Brasil?",
+        opts:["A) Rio de Janeiro","B) Paraná","C) São Paulo","D) Mato Grosso do Sul"], ans:2,
+        exp:"São Paulo tem a maior colônia japonesa fora do Japão! O bairro da Liberdade em SP é famoso por sua cultura asiática. Japoneses chegaram ao Brasil em 1908 para trabalhar no café." },
+      { emoji:"🎪", tag:"Festas", text:"A Festa Junina é celebrada em qual mês?",
+        opts:["A) Maio","B) Junho","C) Julho","D) Agosto"], ans:1,
+        exp:"Festa Junina é em JUNHO! O nome vem de 'junho'. É uma festa típica do Nordeste que celebra santos católicos (Santo Antônio, São João, São Pedro) com quadrilha, forró e comidas típicas." },
+      { emoji:"🌊", tag:"Cultura Afro", text:"A capoeira é uma arte marcial brasileira de origem:",
+        opts:["A) Europeia (Portugal)","B) Indígena tupi","C) Africana (escravizados)","D) Asiática (japonesa)"], ans:2,
+        exp:"A capoeira foi criada por africanos escravizados no Brasil! Eles disfarçavam a luta como dança para não ser proibida. É Patrimônio Imaterial da UNESCO desde 2014!" },
+      { emoji:"🍲", tag:"Culinária", text:"A feijoada é considerada o prato nacional do Brasil. É feita principalmente com:",
+        opts:["A) Arroz e frango","B) Feijão preto e carnes","C) Mandioca e peixe","D) Milho e porco"], ans:1,
+        exp:"Feijoada = feijão preto + carnes variadas (linguiça, costelinha, paio, carne seca). Servida com arroz, couve, farofa e laranja. Tem raízes na culinária africana dos escravizados." },
+      { emoji:"🌿", tag:"Povos Indígenas", text:"Qual idioma é falado pelos indígenas brasileiros mais numerosos hoje?",
+        opts:["A) Guarani","B) Tupi","C) Yanomami","D) São vários idiomas diferentes"], ans:3,
+        exp:"O Brasil tem mais de 300 línguas indígenas! Os indígenas não falam um único idioma. Existem mais de 300 etnias com línguas distintas. Guarani e Tupi são as mais conhecidas historicamente." },
+      { emoji:"🏖️", tag:"Turismo", text:"As Cataratas do Iguaçu ficam em qual estado?",
+        opts:["A) Santa Catarina","B) Rio Grande do Sul","C) Paraná","D) Mato Grosso do Sul"], ans:2,
+        exp:"As Cataratas do Iguaçu ficam no Paraná, na fronteira com a Argentina! São uma das 7 Maravilhas Naturais do mundo. Têm mais de 270 quedas d'água diferentes!" },
+      { emoji:"📿", tag:"Artesanato", text:"O artesanato de renda é mais tradicional em qual região?",
+        opts:["A) Norte","B) Centro-Oeste","C) Sul","D) Nordeste"], ans:3,
+        exp:"A renda é uma das mais belas artes do Nordeste! As rendeiras usam bilros (palitinhos) para trançar fios e criar padrões delicados. Ceará e Alagoas são os mais conhecidos." },
+      { emoji:"⚽", tag:"Esporte", text:"O Brasil foi pentacampeão mundial de futebol. Em qual cidade fica o Maracanã?",
+        opts:["A) São Paulo","B) Rio de Janeiro","C) Belo Horizonte","D) Brasília"], ans:1,
+        exp:"O Maracanã fica no Rio de Janeiro! É um dos estádios mais famosos do mundo, inaugurado para a Copa de 1950. Já recebeu mais de 200.000 torcedores numa única partida!" },
+      { emoji:"🎨", tag:"Arte", text:"Portinari e Cândido Portinari são famosos artistas brasileiros. Portinari era:",
+        opts:["A) Músico","B) Escultor","C) Pintor","D) Poeta"], ans:2,
+        exp:"Cândido Portinari foi um dos maiores pintores do Brasil! Nasceu em São Paulo, filho de imigrantes italianos. Seu quadro 'Café' é um dos mais famosos da arte brasileira." },
+      { emoji:"🏺", tag:"Cultura Indígena", text:"A Aldeia Indígena do Xingu fica em qual estado?",
+        opts:["A) Amazonas","B) Pará","C) Mato Grosso","D) Roraima"], ans:2,
+        exp:"O Parque Indígena do Xingu fica no Mato Grosso! É um dos maiores parques indígenas do mundo, criado em 1961. Abriga dezenas de etnias que mantêm suas tradições." },
+      { emoji:"🌈", tag:"Diversidade", text:"Qual fato torna o Brasil um país de grande diversidade cultural?",
+        opts:["A) Só tem uma religião","B) Todos falam a mesma língua","C) É formado por indígenas, europeus, africanos e imigrantes","D) Tem um único tipo de clima"], ans:2,
+        exp:"O Brasil é um caldeirão cultural! Mistura: indígenas (primeiros habitantes), europeus (Portugal, Itália, Alemanha...), africanos (diáspora escravizada) e imigrantes (Japão, Síria...). É a nossa riqueza!" },
+      { emoji:"🏗️", tag:"Arquitetura", text:"Oscar Niemeyer, famoso arquiteto brasileiro, projetou qual capital?",
+        opts:["A) São Paulo","B) Brasília","C) Belo Horizonte","D) Goiânia"], ans:1,
+        exp:"Oscar Niemeyer projetou os principais edifícios de Brasília: Congresso Nacional, Palácio da Alvorada, Palácio do Planalto e a Catedral! Brasília é Patrimônio Mundial da UNESCO." },
+    ]
+  },
+  {
+    name:"Parada 3 — Economia, Natureza e Atualidades",
+    badge:"Parada 3 — Economia e Meio Ambiente 🌎",
+    time:11,
+    qs:[
+      { emoji:"🌎", tag:"Localização", text:"O Brasil está localizado em qual continente?",
+        opts:["A) África","B) América do Norte","C) América do Sul","D) América Central"], ans:2,
+        exp:"O Brasil fica na América do Sul! É o maior país da América do Sul e o 5º maior do mundo em área (8,5 milhões de km²). Faz fronteira com quase todos os países sul-americanos." },
+      { emoji:"☀️", tag:"Clima", text:"Qual tipo de clima predomina na maior parte do Brasil?",
+        opts:["A) Polar","B) Desértico","C) Tropical","D) Temperado"], ans:2,
+        exp:"O Brasil é predominantemente tropical! Temperaturas altas e chuvas bem distribuídas. O Sul tem clima subtropical (mais frio). O Nordeste tem semiárido (pouca chuva)." },
+      { emoji:"🚜", tag:"Agronegócio", text:"O Brasil é um dos maiores produtores mundiais de:",
+        opts:["A) Trigo e centeio","B) Soja e café","C) Arroz e batata","D) Maçã e uva"], ans:1,
+        exp:"O Brasil é o maior exportador mundial de soja, café, açúcar e frango! O agronegócio representa ~25% do PIB brasileiro. O Brasil alimenta boa parte do mundo!" },
+      { emoji:"⚡", tag:"Energia", text:"A maior usina hidrelétrica do Brasil (em geração) é:",
+        opts:["A) Belo Monte","B) Itaipu","C) Tucuruí","D) Paulo Afonso"], ans:1,
+        exp:"Itaipu fica no Paraná, na fronteira com o Paraguai! É a maior produtora de energia limpa do mundo, gerando ~15% da eletricidade do Brasil e ~90% do Paraguai." },
+      { emoji:"🌿", tag:"Desmatamento", text:"O desmatamento na Amazônia é um problema porque:",
+        opts:["A) Destrói apenas madeira","B) Não tem grandes impactos","C) Aumenta CO₂, destrói biodiversidade e afeta o clima","D) Só afeta animais selvagens"], ans:2,
+        exp:"O desmatamento provoca: aumento do CO₂ (efeito estufa), extinção de espécies, alteração do ciclo da água, impactos no clima regional e global. A Amazônia é o 'pulmão do mundo'!" },
+      { emoji:"🌊", tag:"Amazônia", text:"Qual porcentagem da água doce superficial do mundo fica na Amazônia?",
+        opts:["A) 5%","B) 10%","C) 20%","D) 35%"], ans:2,
+        exp:"20% de toda a água doce superficial do planeta fica na bacia amazônica! O Rio Amazonas sozinho lança 20% de toda a água doce que vai para os oceanos. Um tesouro inestimável!" },
+      { emoji:"🛢️", tag:"Petróleo", text:"O Brasil descobriu grandes reservas de petróleo chamadas de:",
+        opts:["A) Pré-sal","B) Pós-sal","C) Terra firme","D) Petróleo azul"], ans:0,
+        exp:"O pré-sal são reservas de petróleo abaixo de uma camada de sal no fundo do oceano! Descoberto em 2006, tornou o Brasil um dos maiores produtores de petróleo do mundo." },
+      { emoji:"🌡️", tag:"Mudanças Climáticas", text:"O que é o 'efeito estufa' intensificado?",
+        opts:["A) Plantação em estufas de vidro","B) Acúmulo de gases que retêm calor na atmosfera","C) Ventos quentes do deserto","D) Temperatura do mar subindo naturalmente"], ans:1,
+        exp:"O efeito estufa natural é necessário para a vida. Mas a queima de combustíveis fósseis aumenta CO₂ e outros gases, retendo MAIS calor. Resultado: aquecimento global e mudanças climáticas." },
+      { emoji:"🏭", tag:"Indústria", text:"Qual é o maior polo industrial do Brasil?",
+        opts:["A) Rio de Janeiro","B) Belo Horizonte","C) Grande São Paulo / ABC Paulista","D) Manaus"], ans:2,
+        exp:"O Grande São Paulo e o ABC Paulista (Santo André, São Bernardo, São Caetano) formam o maior polo industrial da América Latina! Automóveis, metalurgia, química e tecnologia." },
+      { emoji:"🌿", tag:"Preservação", text:"O que são Unidades de Conservação (UCs)?",
+        opts:["A) Fábricas ecológicas","B) Áreas protegidas por lei para conservar a natureza","C) Cidades sustentáveis","D) Fazendas orgânicas"], ans:1,
+        exp:"Unidades de Conservação são áreas protegidas por lei! Incluem Parques Nacionais, Reservas Biológicas e APA (Áreas de Proteção Ambiental). O Brasil tem mais de 1.500 UCs!" },
+      { emoji:"🚢", tag:"Exportação", text:"Pelo Porto de Santos (SP) sai a maior parte das exportações do Brasil. O que mais é exportado?",
+        opts:["A) Eletrônicos e computadores","B) Armas e veículos militares","C) Produtos agrícolas como soja e açúcar","D) Roupas e calçados"], ans:2,
+        exp:"O Porto de Santos é o maior da América Latina! Por ele saem principalmente soja, milho, açúcar, café e carnes. O agronegócio é o motor das exportações brasileiras." },
+      { emoji:"👶", tag:"Demografía", text:"Qual região do Brasil tem a maior população?",
+        opts:["A) Norte","B) Nordeste","C) Centro-Oeste","D) Sudeste"], ans:3,
+        exp:"O Sudeste tem ~42% da população brasileira! SP, RJ, MG e ES concentram mais de 85 milhões de pessoas. É o maior polo econômico, com mais indústrias e serviços." },
+      { emoji:"🌱", tag:"Sustentabilidade", text:"O que é desenvolvimento sustentável?",
+        opts:["A) Desenvolver sem se importar com o ambiente","B) Parar todo desenvolvimento para preservar","C) Crescer economicamente sem destruir os recursos naturais","D) Só usar energia eólica"], ans:2,
+        exp:"Desenvolvimento sustentável = satisfazer as necessidades do presente SEM comprometer as gerações futuras! Crescer economicamente, mas preservando recursos naturais e o meio ambiente." },
+      { emoji:"☀️", tag:"Energia Renovável", text:"Qual fonte de energia renovável o Brasil mais usa?",
+        opts:["A) Solar","B) Eólica (vento)","C) Hidroelétrica (água)","D) Nuclear"], ans:2,
+        exp:"O Brasil gera ~65% de sua eletricidade em usinas hidroelétricas! Aproveitamos os rios caudalosos (Paraná, Tocantins, São Francisco). Hoje também crescem a solar e a eólica." },
+      { emoji:"🌍", tag:"Posição no Mundo", text:"Em área, o Brasil é o ___ maior país do mundo:",
+        opts:["A) 3º","B) 4º","C) 5º","D) 6º"], ans:2,
+        exp:"O Brasil é o 5º maior país do mundo em área (8,5 milhões de km²)! Maiores: Rússia, Canadá, EUA, China. O Brasil é maior que toda a Europa! É o maior da América Latina." },
+    ]
+  }
+];
+
+let st={phase:0,qIdx:0,score:0,lives:3,streak:0,maxStreak:0,correct:0,wrong:0,timerInt:null,timeLeft:15};
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(){
+  st={phase:0,qIdx:0,score:0,lives:3,streak:0,maxStreak:0,correct:0,wrong:0,timerInt:null,timeLeft:15};
+  showScreen('game'); loadQ();
+}
+
+function loadQ(){
+  const ph=PHASES[st.phase], q=ph.qs[st.qIdx];
+  document.getElementById('phaseBadge').textContent=ph.badge;
+  document.getElementById('qEmoji').textContent=q.emoji;
+  document.getElementById('qTag').textContent=q.tag;
+  document.getElementById('qText').textContent=q.text;
+
+  const col=document.getElementById('optsCol');
+  col.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.innerHTML=`<span class="opt-letter">${letters[i]}</span>${o.replace(/^[ABCD]\) /,'')}`;
+    btn.onclick=()=>pick(i,btn);
+    col.appendChild(btn);
+  });
+
+  const card=document.getElementById('qCard');
+  card.style.animation='none'; card.offsetHeight; card.style.animation='card-in .4s ease';
+  updateHUD(); startTimer(ph.time);
+}
+
+function updateHUD(){
+  document.getElementById('scoreD').textContent=st.score;
+  document.getElementById('livesD').textContent='❤'.repeat(st.lives)+'🖤'.repeat(3-st.lives);
+  document.getElementById('phaseD').textContent=`${st.phase+1}/3`;
+  document.getElementById('streakD').textContent=`🔥${st.streak}`;
+  const total=PHASES.reduce((a,p)=>a+p.qs.length,0);
+  const done=PHASES.slice(0,st.phase).reduce((a,p)=>a+p.qs.length,0)+st.qIdx;
+  document.getElementById('progFill').style.width=`${(done/total)*100}%`;
+}
+
+function startTimer(s){
+  clearInterval(st.timerInt); st.timeLeft=s; updateTimer(s,s);
+  st.timerInt=setInterval(()=>{
+    st.timeLeft--; updateTimer(st.timeLeft,s);
+    if(st.timeLeft<=0){clearInterval(st.timerInt);timeOut();}
+  },1000);
+}
+
+function updateTimer(t,max){
+  document.getElementById('tTxt').textContent=t;
+  const arc=document.getElementById('tArc');
+  arc.style.strokeDashoffset=138*(1-t/max);
+  arc.style.stroke=t<=3?'#EF4444':t<=6?'#F59E0B':'#EAB308';
+  document.getElementById('tTxt').style.color=t<=3?'#EF4444':'white';
+}
+
+function timeOut(){
+  const q=PHASES[st.phase].qs[st.qIdx];
+  st.lives--; st.streak=0; st.wrong++;
+  showFB(false,q,0,true);
+}
+
+function pick(idx,btn){
+  clearInterval(st.timerInt);
+  const q=PHASES[st.phase].qs[st.qIdx];
+  const correct=idx===q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.ans) b.classList.add('correct');
+    else if(i===idx&&!correct) b.classList.add('wrong');
+  });
+  let pts=0;
+  if(correct){
+    pts=10+st.timeLeft*2;
+    if(st.streak>=2) pts=Math.floor(pts*(1+st.streak*.2));
+    st.score+=pts; st.streak++; st.maxStreak=Math.max(st.maxStreak,st.streak); st.correct++;
+  } else { st.lives--; st.streak=0; st.wrong++; }
+  setTimeout(()=>showFB(correct,q,pts,false),400);
+}
+
+function showFB(correct,q,pts,timeout){
+  const fb=document.getElementById('feedback');
+  fb.classList.add('active');
+  document.getElementById('fbI').textContent=timeout?'⏰':correct?'🗺️':'❌';
+  document.getElementById('fbT').textContent=timeout?'Tempo Esgotado!':correct?'CORRETO!':'ERRADO!';
+  document.getElementById('fbT').className='fb-title '+(correct?'fb-correct':'fb-wrong');
+  document.getElementById('fbP').textContent=correct?`+${pts} pts! ${st.streak>1?'🔥×'+st.streak:''}`:`Resposta: ${q.opts[q.ans]}`;
+  document.getElementById('fbE').textContent=q.exp;
+  if(correct&&!timeout) setTimeout(()=>{ if(fb.classList.contains('active')) nextQ(); },2800);
+}
+
+function nextQ(){
+  document.getElementById('feedback').classList.remove('active');
+  if(st.lives<=0){showResults();return;}
+  st.qIdx++;
+  if(st.qIdx>=PHASES[st.phase].qs.length){
+    if(st.phase<PHASES.length-1) showPT();
+    else showResults();
+  } else loadQ();
+}
+
+function showPT(){
+  const pt=document.getElementById('phase-trans');
+  pt.classList.add('active');
+  const emojis=['🗺️','✈️','🌎'];
+  document.getElementById('ptE').textContent=emojis[st.phase];
+  document.getElementById('ptT').textContent=`Parada ${st.phase+1} Completa!`;
+  document.getElementById('ptS').textContent='Próxima parada da viagem!';
+  document.getElementById('ptSc').textContent=`🌟 ${st.score} pontos`;
+  setTimeout(()=>{ pt.classList.remove('active'); st.phase++; st.qIdx=0; loadQ(); },2500);
+}
+
+function showResults(){
+  showScreen('results');
+  const pct=Math.round((st.correct/(st.correct+st.wrong||1))*100);
+  let title='Explorador do Brasil! 🗺️';
+  if(pct<50) title='Turista Iniciante! 📚';
+  else if(pct<70) title='Viajante Curioso! ⭐';
+  else if(pct<90) title='Geógrafo Expert! 🏆';
+  else title='MESTRE DO BRASIL! 🌟';
+  document.getElementById('resT').textContent=title;
+  document.getElementById('resSc').textContent=st.score;
+  document.getElementById('resC').textContent=st.correct;
+  document.getElementById('resW').textContent=st.wrong;
+  document.getElementById('resMx').textContent=st.maxStreak;
+  localStorage.setItem('hs_geografia',st.score);
+}
+</script>
+</body>
+</html>

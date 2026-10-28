@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feitiço das Palavras 🧙</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#1A0533;color:white;min-height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 30% 20%,#3B1F6A 0%,#1A0533 60%,#0F0720 100%);z-index:-1}
+
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+
+/* INTRO */
+#intro{text-align:center}
+.wizard{font-size:6rem;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
+.intro-title{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;color:#C084FC;margin-bottom:8px}
+.intro-sub{color:#94A3B8;font-size:1rem;max-width:480px;margin:0 auto 16px;line-height:1.6}
+.bncc{background:rgba(192,132,252,.15);border:1px solid #C084FC;padding:8px 18px;
+      border-radius:12px;color:#E9D5FF;font-size:.82rem;margin-bottom:20px;display:inline-block}
+.cats-preview{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.cat-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+          padding:14px 20px;border-radius:14px;text-align:center;min-width:110px}
+.cat-card .cc-emoji{font-size:2rem;display:block;margin-bottom:5px}
+.cat-card .cc-name{font-size:.78rem;font-weight:600;color:#C084FC}
+.btn-start{background:linear-gradient(90deg,#7C3AED,#A855F7);border:none;color:white;
+           padding:16px 48px;border-radius:16px;font-size:1.2rem;font-weight:800;cursor:pointer;
+           transition:all .2s;box-shadow:0 8px 24px rgba(168,85,247,.4)}
+.btn-start:hover{transform:scale(1.05) translateY(-2px)}
+.btn-back{background:none;border:1px solid #4C1D95;color:#6D28D9;padding:8px 20px;
+          border-radius:8px;cursor:pointer;font-size:.85rem;margin-top:12px;transition:all .2s}
+.btn-back:hover{border-color:#A855F7;color:#C084FC}
+
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
+     justify-content:space-between;padding:12px 20px;background:rgba(0,0,0,.5);
+     backdrop-filter:blur(8px);z-index:10;gap:8px;flex-wrap:wrap}
+.hud-item{display:flex;flex-direction:column;align-items:center;min-width:55px}
+.hud-label{font-size:.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px}
+.hud-val{font-size:1.1rem;font-weight:800}
+.sv{color:#A855F7}.lv{color:#EF4444;font-size:1.3rem}.pv{color:#A78BFA}.stv{color:#F59E0B}
+.timer-wrap{position:relative;width:52px;height:52px}
+.timer-svg{transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:#2D1B69;stroke-width:4}
+.t-arc{fill:none;stroke:#A855F7;stroke-width:4;stroke-linecap:round;
+       stroke-dasharray:138;stroke-dashoffset:0;transition:stroke-dashoffset .1s}
+.t-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+       font-size:1rem;font-weight:800;color:white}
+.progress-bar{position:absolute;top:68px;left:0;right:0;height:4px;background:#2D1B69;z-index:10}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7C3AED,#A855F7,#D8B4FE);
+               transition:width .5s ease;border-radius:2px}
+
+/* GAME */
+#game{position:relative;padding:0}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+           padding:80px 20px 20px;gap:20px;position:relative;z-index:1}
+.cat-badge{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+           padding:6px 18px;border-radius:20px;color:#C084FC;font-size:.85rem;font-weight:600}
+
+/* Potion visual */
+.word-card{background:rgba(255,255,255,.04);border:2px solid rgba(168,85,247,.3);
+           border-radius:24px;padding:28px 36px;text-align:center;backdrop-filter:blur(10px);
+           animation:card-in .4s ease;max-width:560px;width:100%}
+@keyframes card-in{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.word-emoji{font-size:3rem;margin-bottom:10px;display:block}
+.word-category{font-size:.75rem;color:#7C3AED;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.word-question{font-size:.9rem;color:#94A3B8;margin-bottom:14px;line-height:1.5}
+.word-display{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:6px;
+              font-family:monospace;margin-bottom:6px;color:white}
+.blank{color:#A855F7;text-decoration:underline;font-size:clamp(1.8rem,4vw,2.8rem)}
+.word-hint{font-size:.82rem;color:#64748B;font-style:italic}
+
+/* Options — letter tiles */
+.letter-grid{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:480px;width:100%}
+.tile{background:rgba(168,85,247,.12);border:2px solid rgba(168,85,247,.3);
+      border-radius:14px;padding:14px 22px;font-size:1.3rem;font-weight:800;
+      color:#E9D5FF;cursor:pointer;transition:all .2s;letter-spacing:2px;font-family:monospace;
+      min-width:70px;text-align:center}
+.tile:hover:not(:disabled){background:rgba(168,85,247,.25);border-color:#A855F7;transform:scale(1.08) translateY(-2px)}
+.tile.correct{background:rgba(34,197,94,.2)!important;border-color:#22C55E!important;color:#22C55E!important;transform:scale(1.1)}
+.tile.wrong{background:rgba(239,68,68,.2)!important;border-color:#EF4444!important;color:#EF4444!important}
+.tile:disabled{cursor:default}
+
+/* Feedback */
+.feedback{position:absolute;top:0;left:0;right:0;bottom:0;display:none;
+          flex-direction:column;align-items:center;justify-content:center;
+          z-index:20;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)}
+.feedback.active{display:flex}
+.fb-icon{font-size:5rem;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fb-title{font-size:2rem;font-weight:900;margin:10px 0}
+.fb-correct{color:#22C55E}.fb-wrong{color:#EF4444}
+.fb-word{font-size:2rem;font-weight:900;color:#E9D5FF;margin:4px 0;font-family:monospace;letter-spacing:4px}
+.fb-pts{color:#F59E0B;font-size:1.1rem;font-weight:700}
+.fb-exp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+        padding:12px 20px;border-radius:14px;color:#CBD5E1;font-size:.88rem;
+        max-width:420px;text-align:center;line-height:1.6;margin:8px 20px}
+.btn-next{background:#A855F7;border:none;color:white;padding:12px 36px;border-radius:12px;
+          font-size:1rem;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s}
+.btn-next:hover{transform:scale(1.05)}
+
+/* Phase transition */
+#phase-trans{position:fixed;top:0;left:0;right:0;bottom:0;background:#1A0533;display:none;
+             flex-direction:column;align-items:center;justify-content:center;z-index:100;text-align:center}
+#phase-trans.active{display:flex}
+.pt-emoji{font-size:5rem;animation:float 1.5s ease-in-out infinite;margin-bottom:16px}
+.pt-title{font-size:2.5rem;font-weight:900;color:#A855F7}
+.pt-sub{color:#94A3B8;margin-top:8px;font-size:.95rem}
+.pt-score{font-size:1.5rem;font-weight:700;color:#F59E0B;margin-top:14px}
+
+/* Floating particles */
+.magic-particle{position:fixed;pointer-events:none;animation:magic-float 6s linear infinite;z-index:0;opacity:.4}
+@keyframes magic-float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:.4}90%{opacity:.4}100%{transform:translateY(-100px) rotate(360deg);opacity:0}}
+
+/* RESULTS */
+#results{text-align:center}
+.res-wizard{font-size:5rem;animation:float 2s ease-in-out infinite}
+.res-title{font-size:2.5rem;font-weight:900;margin:16px 0 6px}
+.res-score{font-size:4rem;font-weight:900;color:#A855F7}
+.res-lbl{color:#64748B;font-size:.9rem}
+.res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px auto;max-width:380px}
+.rs{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px;border-radius:14px}
+.rs-num{font-size:1.8rem;font-weight:800;color:#D8B4FE}
+.rs-lbl{font-size:.7rem;color:#64748B;text-transform:uppercase;margin-top:4px}
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn-p{background:#A855F7;border:none;color:white;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-p:hover{transform:scale(1.05)}
+.btn-s{background:none;border:1px solid #4C1D95;color:#94A3B8;padding:14px 32px;border-radius:14px;font-size:1rem;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-s:hover{border-color:#A855F7;color:white}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="wizard">🧙</div>
+  <div class="intro-title">Feitiço das Palavras</div>
+  <div class="intro-sub">O mago Ortograficus perdeu as letras mágicas dos seus feitiços! Ajude-o a completar as palavras corretamente para restaurar os poderes!</div>
+  <div class="bncc">📚 Língua Portuguesa · EF03LP01 → EF05LP13 · Ortografia</div>
+  <div class="cats-preview">
+    <div class="cat-card"><span class="cc-emoji">🐾</span><div class="cc-name">S,SS,Ç,C</div></div>
+    <div class="cat-card"><span class="cc-emoji">🌙</span><div class="cc-name">G,J,X,CH</div></div>
+    <div class="cat-card"><span class="cc-emoji">🔮</span><div class="cc-name">LH,NH,RR,R</div></div>
+  </div>
+  <button class="btn-start" onclick="startGame()">✨ Lançar Feitiço!</button>
+  <a href="../index.html" style="text-decoration:none"><button class="btn-back">← Menu Principal</button></a>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game" style="position:relative">
+  <div class="hud">
+    <div class="hud-item"><span class="hud-label">Pontos</span><span class="hud-val sv" id="scoreD">0</span></div>
+    <div class="hud-item"><span class="hud-label">Vidas</span><span class="hud-val lv" id="livesD">❤❤❤</span></div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="t-bg" cx="26" cy="26" r="22"/>
+        <circle class="t-arc" id="tArc" cx="26" cy="26" r="22"/>
+      </svg>
+      <div class="t-txt" id="tTxt">15</div>
+    </div>
+    <div class="hud-item"><span class="hud-label">Fase</span><span class="hud-val pv" id="phaseD">1/3</span></div>
+    <div class="hud-item"><span class="hud-label">Streak</span><span class="hud-val stv" id="streakD">🔥0</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="game-area">
+    <div class="cat-badge" id="catBadge">Fase 1 — Feitiços com S, SS, Ç e C</div>
+    <div class="word-card" id="wCard">
+      <span class="word-emoji" id="wEmoji">🐟</span>
+      <div class="word-category" id="wCat">Complete a palavra</div>
+      <div class="word-question" id="wQ">Qual a escrita correta?</div>
+      <div class="word-display" id="wDisplay">PE<span class="blank">__</span>E</div>
+      <div class="word-hint" id="wHint">Animal que vive na água</div>
+    </div>
+    <div class="letter-grid" id="tileGrid"></div>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fbI">✨</div>
+    <div class="fb-title" id="fbT">CORRETO!</div>
+    <div class="fb-word" id="fbW"></div>
+    <div class="fb-pts" id="fbP"></div>
+    <div class="fb-exp" id="fbE"></div>
+    <button class="btn-next" onclick="nextQ()">Próxima Palavra →</button>
+  </div>
+</div>
+
+<!-- PHASE TRANSITION -->
+<div id="phase-trans">
+  <div class="pt-emoji" id="ptE">⭐</div>
+  <div class="pt-title" id="ptT">Fase 1 Completa!</div>
+  <div class="pt-sub" id="ptS">Prepare-se para novos feitiços!</div>
+  <div class="pt-score" id="ptSc"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-wizard">🧙‍♂️</div>
+  <div class="res-title" id="resT">Mago da Ortografia!</div>
+  <div class="res-score" id="resSc">0</div>
+  <div class="res-lbl">pontos</div>
+  <div class="res-stats">
+    <div class="rs"><div class="rs-num" id="resC">0</div><div class="rs-lbl">Acertos</div></div>
+    <div class="rs"><div class="rs-num" id="resW">0</div><div class="rs-lbl">Erros</div></div>
+    <div class="rs"><div class="rs-num" id="resMx">0</div><div class="rs-lbl">Maior Seq.</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" onclick="startGame()">🔄 Jogar Novamente</button>
+    <a href="../index.html" class="btn-s">🏠 Menu Principal</a>
+  </div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    name:"Fase 1 — Feitiços com S, SS, Ç e C",
+    badge:"Fase 1 — S, SS, Ç e C",
+    time:15,
+    words:[
+      { emoji:"🐟", word:"PEIXE", display:"PEIXE", q:"Qual a escrita correta da palavra?", hint:"Animal que nada no mar",
+        opts:["PEIXE","PEIXE","PEIXE","PEICHE"], ans:0,
+        exp:"PEIXE se escreve com X. O dígrafo 'ei' geralmente vem seguido de X (peixe, deixa, queixo)." },
+      { emoji:"🌊", word:"OCEANO", display:"O__EANO", q:"Complete com a letra que faz o som de 'S':", hint:"Oceano, mar profundo",
+        opts:["C","SS","Ç","S"], ans:0,
+        exp:"OCEANO se escreve com C. Antes de E e I, a letra C soa como S: cedo, cima, oceano." },
+      { emoji:"🌸", word:"FLORESCE", display:"FLORE__E", q:"Complete a palavra FLORE__E:", hint:"Verbo 'florescer' no presente",
+        opts:["SC","SS","Ç","C"], ans:0,
+        exp:"FLORESCE usa SC. O dígrafo SC aparece em palavras como: cresça, nascer, descer, piscina." },
+      { emoji:"🚗", word:"VELOCIDADE", display:"VELOCI__ADE", q:"Complete VELOCI__ADE:", hint:"Quão rápido algo vai",
+        opts:["D","T","DD","DH"], ans:0,
+        exp:"VELOCIDADE. Dica: palavras terminadas em '-dade' e '-ção' são muito comuns no português." },
+      { emoji:"🧁", word:"GULOSEIMA", display:"GULOSEIM_", q:"Como termina GULOSEIM__?", hint:"Nome para doces e guloseimas",
+        opts:["A","HA","Ã","AN"], ans:0,
+        exp:"GULOSEIMA termina com A. Palavras com ditongo 'ei' seguido de M: queima, reima." },
+      { emoji:"🦁", word:"LEÃO", display:"LE__O", q:"Complete com a consoante e acento coretos:", hint:"Rei da savana",
+        opts:["ÃO","AN","AM","AO"], ans:0,
+        exp:"LEÃO tem o dígrafo nasal 'ão'. Sons nasais no final: -ão (como em leão, pão, mão)." },
+      { emoji:"🍦", word:"SORVETE", display:"__ORVETE", q:"Com qual letra começa SORVETE?", hint:"Sobremesa gelada",
+        opts:["S","SS","Ç","C"], ans:0,
+        exp:"SORVETE começa com S simples. No início de palavra, usa-se S com som de /s/." },
+      { emoji:"🐠", word:"PISCINA", display:"PI__INA", q:"Complete PI__INA:", hint:"Local para nadar",
+        opts:["SC","SS","Ç","C"], ans:0,
+        exp:"PISCINA usa SC. Assim como em: nascer, descer, cresça, fascínio." },
+      { emoji:"🏡", word:"CASINHA", display:"CA__INHA", q:"Complete CA__INHA:", hint:"Casa pequena e aconchegante",
+        opts:["S","Z","SS","Ç"], ans:0,
+        exp:"CASINHA usa S simples entre vogais quando origina de palavra com S: casa → casinha." },
+      { emoji:"🌳", word:"ÁRVORE", display:"ÁRVO__E", q:"Complete ÁRVO__E:", hint:"Planta grande com tronco",
+        opts:["R","RR","L","LH"], ans:0,
+        exp:"ÁRVORE usa R simples. Após consoante (N, L, S) usa-se R simples com som forte." },
+      { emoji:"🎵", word:"MÚSICA", display:"MÚ__ICA", q:"Complete MÚ__ICA:", hint:"Arte dos sons",
+        opts:["S","SS","Ç","C"], ans:0,
+        exp:"MÚSICA usa S. Regra: quando está entre vogais e é forte, pode ser S ou SS. Aqui: mú-si-ca." },
+      { emoji:"🎠", word:"PRAÇA", display:"PRA__A", q:"Complete PRA__A:", hint:"Lugar público com jardim",
+        opts:["Ç","Ã","SS","S"], ans:0,
+        exp:"PRAÇA usa Ç. O Ç nunca vem antes de E e I, apenas A, O, U." },
+    ]
+  },
+  {
+    name:"Fase 2 — Feitiços com G, J, X e CH",
+    badge:"Fase 2 — G, J, X e CH",
+    time:13,
+    words:[
+      { emoji:"🦒", word:"GIRAFA", display:"__IRAFA", q:"Com que letra começa GIRAFA?", hint:"Animal de pescoço longo",
+        opts:["G","J","GI","JI"], ans:0,
+        exp:"GIRAFA usa G. Antes de E e I, G soa como J: gente, girafa, giz. Mas se escreve G!" },
+      { emoji:"🌹", word:"JASMIM", display:"__ASMIM", q:"Com qual letra?", hint:"Flor perfumada",
+        opts:["J","G","JA","GA"], ans:0,
+        exp:"JASMIM usa J. A letra J tem sempre som de /j/: jambo, jasmim, janela." },
+      { emoji:"🦊", word:"RAPOSA", display:"RA__OSA", q:"Complete RA__OSA:", hint:"Animal esperto da floresta",
+        opts:["P","PP","B","PH"], ans:0,
+        exp:"RAPOSA usa P. P antes de outras consoantes aparece em palavras como: rapto, captar." },
+      { emoji:"🧲", word:"MÁGICO", display:"MÁ__ICO", q:"Complete MÁ__ICO:", hint:"Que tem magia",
+        opts:["G","J","GI","GG"], ans:0,
+        exp:"MÁGICO usa G. Regra importante: quando antes de E ou I, G soa como J, mas mantemos o G." },
+      { emoji:"🎃", word:"BRUXA", display:"BRU__A", q:"Complete BRU__A:", hint:"Personagem de contos de fadas",
+        opts:["X","CH","CH","XA"], ans:0,
+        exp:"BRUXA usa X. Algumas palavras levam X: bruxa, laxante, auxiliar. Não se explica por regra simples — precisa memorizar!" },
+      { emoji:"🏆", word:"TROFÉU", display:"TRO__ÉU", q:"Complete TRO__ÉU:", hint:"Prêmio de campeão",
+        opts:["F","PH","FF","V"], ans:0,
+        exp:"TROFÉU usa F. No português moderno, usamos F (não PH como no grego): troféu, elefante, telefone." },
+      { emoji:"🎭", word:"ENGANCHAR", display:"ENGAN__AR", q:"Complete ENGAN__AR:", hint:"Prender com gancho",
+        opts:["CH","X","SH","TCH"], ans:0,
+        exp:"ENGANCHAR usa CH. O dígrafo CH dá som de /x/: chave, chinelo, chocolate, achar." },
+      { emoji:"🌮", word:"MEXER", display:"ME__ER", q:"Complete ME__ER:", hint:"Verbo: mover, agitar",
+        opts:["X","CH","S","C"], ans:0,
+        exp:"MEXER usa X. Após as vogais E e I e depois do ditongo EI, normalmente usamos X: queixo, deixa, eixo." },
+      { emoji:"🌴", word:"GELEIA", display:"__ELEIA", q:"Com que letra começa?", hint:"Doce de frutas",
+        opts:["G","J","GE","JE"], ans:0,
+        exp:"GELEIA usa G. Antes de E e I, G faz som de J. Mas muitas palavras têm GE/GI: gelo, gente, girar." },
+      { emoji:"🍫", word:"CHOCOLATE", display:"__OCOLATE", q:"Com que dígrafo começa?", hint:"Doce feito de cacau",
+        opts:["CH","X","SH","SC"], ans:0,
+        exp:"CHOCOLATE usa CH. O dígrafo CH vem do latim/espanhol: chocolate, cheiro, cheio, chave." },
+      { emoji:"📦", word:"CAIXA", display:"CAI__A", q:"Complete CAI__A:", hint:"Recipiente de papelão",
+        opts:["X","CH","XA","CHA"], ans:0,
+        exp:"CAIXA usa X. Após o ditongo AI, usamos X: baixo, caixa, faísca não, mas faixa sim!" },
+      { emoji:"🧸", word:"PELÚCIA", display:"PELÚ__IA", q:"Complete PELÚ__IA:", hint:"Material macio de brinquedos",
+        opts:["C","S","Ç","SC"], ans:0,
+        exp:"PELÚCIA usa C. Antes de I ou E, o C faz som de S: pelúcia, cereal, cinema." },
+    ]
+  },
+  {
+    name:"Fase 3 — Feitiços com LH, NH, RR e R",
+    badge:"Fase 3 — LH, NH, RR e R",
+    time:11,
+    words:[
+      { emoji:"🦁", word:"LEÃO RUGIA", display:"O LEÃO RU__IA", q:"Complete RU__IA (berrava):", hint:"Verbo: fazer barulho de leão",
+        opts:["G","J","GI","GG"], ans:0,
+        exp:"RUGIA usa G (antes de I). 'Rugir' → ele rugia. G antes de I/E tem som de J." },
+      { emoji:"🍋", word:"TOALHA", display:"TOA__A", q:"Complete TOA__A:", hint:"Usada para se secar",
+        opts:["LH","L","LL","LHA"], ans:0,
+        exp:"TOALHA usa LH. O dígrafo LH dá um som diferente de L: toalha, palha, colher, molhar." },
+      { emoji:"🌾", word:"PALHA", display:"PA__A", q:"Complete PA__A:", hint:"Hastes secas de trigo",
+        opts:["LH","L","LL","LHO"], ans:0,
+        exp:"PALHA usa LH. Dígrafos LH: bilhete, galho, mulher, palha. O L dobrado LL não existe no português!" },
+      { emoji:"🐕", word:"CACHORRO", display:"CACH__O", q:"Complete CACH__O:", hint:"Animal doméstico fiel",
+        opts:["ORR","OR","RO","RRO"], ans:3,
+        exp:"CACHORRO usa RR. Entre vogais, usa-se RR para o som forte de R: carro, ferro, arroz, cachorro." },
+      { emoji:"🏃", word:"CORRIDA", display:"CO__IDA", q:"Complete CO__IDA:", hint:"Ato de correr",
+        opts:["RR","R","R","R"], ans:0,
+        exp:"CORRIDA usa RR. Entre vogais, o R simples tem som suave, e RR tem som forte: caro/carro, pera/perra." },
+      { emoji:"🌱", word:"RAIZ", display:"__AIZ", q:"Com qual letra começa?", hint:"Parte subterrânea da planta",
+        opts:["R","RR","Ra","Rr"], ans:0,
+        exp:"RAIZ começa com R simples. No início de palavra, R sempre tem som forte: rato, rosa, rio." },
+      { emoji:"🎵", word:"CANTINHO", display:"CANTI__O", q:"Complete CANTI__O:", hint:"Cantinho pequeno e aconchegante",
+        opts:["NH","N","NN","NHA"], ans:0,
+        exp:"CANTINHO usa NH. O dígrafo NH dá som nasal palatal: caminho, manhã, sonho, vinho." },
+      { emoji:"🌙", word:"SONHO", display:"SO__O", q:"Complete SO__O:", hint:"Imagens que vemos dormindo",
+        opts:["NH","N","NN","GN"], ans:0,
+        exp:"SONHO usa NH. NH e LH são dígrafos típicos do português: sonho, banho, ninho, ranho." },
+      { emoji:"🚂", word:"FERRO", display:"FE__O", q:"Complete FE__O:", hint:"Metal resistente",
+        opts:["RR","R","RO","RRO"], ans:0,
+        exp:"FERRO usa RR entre vogais. Compare: fero (feroz) × ferro (metal). A duplicação muda o sentido!" },
+      { emoji:"🏠", word:"MORADIA", display:"MO__ADIA", q:"Complete MO__ADIA:", hint:"Lugar onde se mora",
+        opts:["R","RR","L","D"], ans:0,
+        exp:"MORADIA usa R simples. Entre vogais, R simples tem som suave: moradia, coragem, sereno." },
+      { emoji:"🌿", word:"ORVALHO", display:"ORVA__O", q:"Complete ORVA__O:", hint:"Gotinhas d'água na grama pela manhã",
+        opts:["LH","L","LL","LHO"], ans:0,
+        exp:"ORVALHO usa LH. LH é um dígrafo típico do português! Outros exemplos: alho, olho, filho." },
+      { emoji:"🐾", word:"ARRANHÃO", display:"A__ANHÃO", q:"Complete A__ANHÃO:", hint:"Marca de garra no corpo",
+        opts:["RR","R","RRA","RA"], ans:0,
+        exp:"ARRANHÃO usa RR. Entre vogais com som forte = RR: arranha → arranhão." },
+    ]
+  }
+];
+
+let st={ phase:0, qIdx:0, score:0, lives:3, streak:0, maxStreak:0, correct:0, wrong:0, timerInt:null, timeLeft:15 };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(){
+  st={phase:0,qIdx:0,score:0,lives:3,streak:0,maxStreak:0,correct:0,wrong:0,timerInt:null,timeLeft:15};
+  showScreen('game'); loadQ();
+}
+
+function loadQ(){
+  const ph=PHASES[st.phase], w=ph.words[st.qIdx];
+  document.getElementById('catBadge').textContent=ph.badge;
+  document.getElementById('wEmoji').textContent=w.emoji;
+  document.getElementById('wCat').textContent='Complete a palavra';
+  document.getElementById('wQ').textContent=w.q;
+  document.getElementById('wHint').textContent=w.hint;
+
+  // Build display with blanks highlighted
+  let disp = w.display.replace(/__/g,'<span class="blank">___</span>');
+  document.getElementById('wDisplay').innerHTML=disp;
+
+  const grid=document.getElementById('tileGrid');
+  grid.innerHTML='';
+  w.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='tile'; btn.textContent=o;
+    btn.onclick=()=>pick(i,btn);
+    grid.appendChild(btn);
+  });
+
+  const card=document.getElementById('wCard');
+  card.style.animation='none'; card.offsetHeight; card.style.animation='card-in .4s ease';
+  updateHUD(); startTimer(ph.time);
+}
+
+function updateHUD(){
+  document.getElementById('scoreD').textContent=st.score;
+  document.getElementById('livesD').textContent='❤'.repeat(st.lives)+'🖤'.repeat(3-st.lives);
+  document.getElementById('phaseD').textContent=`${st.phase+1}/3`;
+  document.getElementById('streakD').textContent=`🔥${st.streak}`;
+  const total=PHASES.reduce((a,p)=>a+p.words.length,0);
+  const done=PHASES.slice(0,st.phase).reduce((a,p)=>a+p.words.length,0)+st.qIdx;
+  document.getElementById('progFill').style.width=`${(done/total)*100}%`;
+}
+
+function startTimer(s){
+  clearInterval(st.timerInt); st.timeLeft=s; updateTimer(s,s);
+  st.timerInt=setInterval(()=>{
+    st.timeLeft--; updateTimer(st.timeLeft,s);
+    if(st.timeLeft<=0){clearInterval(st.timerInt);timeOut();}
+  },1000);
+}
+
+function updateTimer(t,max){
+  document.getElementById('tTxt').textContent=t;
+  const arc=document.getElementById('tArc');
+  arc.style.strokeDashoffset=138*(1-t/max);
+  arc.style.stroke=t<=3?'#EF4444':t<=6?'#F59E0B':'#A855F7';
+  document.getElementById('tTxt').style.color=t<=3?'#EF4444':'white';
+}
+
+function timeOut(){
+  const w=PHASES[st.phase].words[st.qIdx];
+  st.lives--; st.streak=0; st.wrong++;
+  showFB(false,w,0,true);
+}
+
+function pick(idx,btn){
+  clearInterval(st.timerInt);
+  const w=PHASES[st.phase].words[st.qIdx];
+  const correct=idx===w.ans;
+  document.querySelectorAll('.tile').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===w.ans) b.classList.add('correct');
+    else if(i===idx&&!correct) b.classList.add('wrong');
+  });
+  let pts=0;
+  if(correct){
+    pts=10+st.timeLeft*2;
+    if(st.streak>=2) pts=Math.floor(pts*(1+st.streak*.2));
+    st.score+=pts; st.streak++; st.maxStreak=Math.max(st.maxStreak,st.streak); st.correct++;
+  } else { st.lives--; st.streak=0; st.wrong++; }
+  setTimeout(()=>showFB(correct,w,pts,false),400);
+}
+
+function showFB(correct,w,pts,timeout){
+  const fb=document.getElementById('feedback');
+  fb.classList.add('active');
+  document.getElementById('fbI').textContent=timeout?'⏰':correct?'✨':'💔';
+  document.getElementById('fbT').textContent=timeout?'Tempo Esgotado!':correct?'CORRETO!':'ERRADO!';
+  document.getElementById('fbT').className='fb-title '+(correct?'fb-correct':'fb-wrong');
+  document.getElementById('fbW').textContent=w.word;
+  document.getElementById('fbP').textContent=correct?`+${pts} pts! ${st.streak>1?'🔥×'+st.streak:''}`:`Palavra: ${w.word}`;
+  document.getElementById('fbE').textContent=w.exp;
+  if(correct&&!timeout) setTimeout(()=>{ if(fb.classList.contains('active')) nextQ(); },2800);
+}
+
+function nextQ(){
+  document.getElementById('feedback').classList.remove('active');
+  if(st.lives<=0){showResults();return;}
+  st.qIdx++;
+  if(st.qIdx>=PHASES[st.phase].words.length){
+    if(st.phase<PHASES.length-1) showPT();
+    else showResults();
+  } else loadQ();
+}
+
+function showPT(){
+  const pt=document.getElementById('phase-trans');
+  pt.classList.add('active');
+  const emojis=['🌟','💫','🏆'];
+  document.getElementById('ptE').textContent=emojis[st.phase];
+  document.getElementById('ptT').textContent=`Fase ${st.phase+1} Completa! ${emojis[st.phase]}`;
+  document.getElementById('ptS').textContent='Próximos feitiços são mais difíceis!';
+  document.getElementById('ptSc').textContent=`✨ ${st.score} pontos`;
+  setTimeout(()=>{ pt.classList.remove('active'); st.phase++; st.qIdx=0; loadQ(); },2500);
+}
+
+function showResults(){
+  showScreen('results');
+  const pct=Math.round((st.correct/(st.correct+st.wrong||1))*100);
+  let title='Grande Mago! 🧙';
+  if(pct<50) title='Continue Estudando! 📚';
+  else if(pct<70) title='Aprendiz de Feiticeiro! ⭐';
+  else if(pct<90) title='Mestre das Palavras! 🏆';
+  else title='ARCHMAGO! 🌟 Perfeito!';
+  document.getElementById('resT').textContent=title;
+  document.getElementById('resSc').textContent=st.score;
+  document.getElementById('resC').textContent=st.correct;
+  document.getElementById('resW').textContent=st.wrong;
+  document.getElementById('resMx').textContent=st.maxStreak;
+  localStorage.setItem('hs_ortografia',st.score);
+}
+
+// Floating magic particles
+['✨','⭐','🌟','💫','🔮'].forEach((e,i)=>{
+  const p=document.createElement('div');
+  p.className='magic-particle'; p.textContent=e;
+  p.style.cssText=`left:${10+i*20}%;animation-delay:${i*1.3}s;font-size:1.2rem`;
+  document.body.appendChild(p);
+});
+</script>
+</body>
+</html>

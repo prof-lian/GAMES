@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Afunda ou Flutua? 🌊</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root { --cyan:#06B6D4; --dark:#0F172A; --card:#1E293B; }
+
+body {
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:var(--dark); color:white;
+  min-height:100vh; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+
+/* ===== SCREENS ===== */
+.screen { display:none; width:100%; height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+.screen.active { display:flex; }
+
+/* ===== INTRO ===== */
+#intro { background:linear-gradient(160deg,#0F172A,#0C4A6E,#0F172A); text-align:center; }
+.intro-icon { font-size:6rem; animation:bounce 1.5s infinite; margin-bottom:20px; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+.intro-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:900; color:#06B6D4; margin-bottom:10px; }
+.intro-sub { color:#94A3B8; font-size:1.1rem; max-width:500px; margin:0 auto 10px; line-height:1.6; }
+.bncc { background:rgba(6,182,212,0.15); border:1px solid #06B6D4; padding:10px 20px;
+        border-radius:12px; color:#67E8F9; font-size:0.85rem; margin-bottom:24px; display:inline-block; }
+.btn-start {
+  background:linear-gradient(90deg,#0891B2,#06B6D4);
+  border:none; color:white; padding:16px 48px;
+  border-radius:16px; font-size:1.2rem; font-weight:800;
+  cursor:pointer; transition:all 0.2s;
+  box-shadow:0 8px 24px rgba(6,182,212,0.4);
+}
+.btn-start:hover { transform:scale(1.05) translateY(-2px); box-shadow:0 12px 30px rgba(6,182,212,0.5); }
+.how-to { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:24px; }
+.how-item { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+            padding:12px 18px; border-radius:12px; font-size:0.85rem; color:#CBD5E1; }
+.btn-back { background:none; border:1px solid #334155; color:#64748B; padding:8px 20px;
+            border-radius:8px; cursor:pointer; font-size:0.85rem; margin-top:16px; transition:all 0.2s; }
+.btn-back:hover { border-color:#94A3B8; color:#94A3B8; }
+
+/* ===== GAME ===== */
+#game {
+  background:linear-gradient(160deg,#0F172A 0%,#0C2A40 60%,#164E63 100%);
+  position:relative;
+  padding:0;
+}
+
+/* Top HUD */
+.hud {
+  position:absolute; top:0; left:0; right:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 20px;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(8px);
+  z-index:10;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.hud-item { display:flex; flex-direction:column; align-items:center; min-width:60px; }
+.hud-label { font-size:0.65rem; color:#64748B; text-transform:uppercase; letter-spacing:1px; }
+.hud-value { font-size:1.1rem; font-weight:800; }
+.score-val { color:#06B6D4; }
+.lives-val { color:#EF4444; font-size:1.3rem; letter-spacing:2px; }
+.phase-val { color:#A78BFA; }
+.streak-val { color:#F59E0B; }
+
+/* Timer ring */
+.timer-wrap { position:relative; width:52px; height:52px; }
+.timer-svg { transform:rotate(-90deg); }
+.timer-bg { fill:none; stroke:#1E3A5F; stroke-width:4; }
+.timer-arc { fill:none; stroke:#06B6D4; stroke-width:4; stroke-linecap:round;
+             stroke-dasharray:138; stroke-dashoffset:0; transition:stroke-dashoffset 0.1s; }
+.timer-text {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:1rem; font-weight:800; color:white;
+}
+
+/* Progress */
+.progress-bar {
+  position:absolute; top:68px; left:0; right:0; height:4px;
+  background:#1E293B; z-index:10;
+}
+.progress-fill {
+  height:100%; background:linear-gradient(90deg,#0891B2,#06B6D4,#22D3EE);
+  transition:width 0.5s ease;
+  border-radius:2px;
+}
+
+/* Game main area */
+.game-area {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:80px 20px 20px;
+  gap:20px;
+  position:relative;
+  z-index:1;
+}
+
+/* Phase banner */
+.phase-banner {
+  background:rgba(167,139,250,0.15);
+  border:1px solid rgba(167,139,250,0.3);
+  padding:6px 18px; border-radius:20px;
+  color:#A78BFA; font-size:0.85rem; font-weight:600;
+}
+
+/* Object card */
+.object-card {
+  background:rgba(255,255,255,0.05);
+  border:2px solid rgba(255,255,255,0.1);
+  border-radius:24px;
+  padding:32px 48px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+  animation:card-in 0.4s ease;
+  max-width:400px; width:100%;
+}
+@keyframes card-in { from{opacity:0;transform:scale(0.8) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+.object-emoji { font-size:5rem; line-height:1; margin-bottom:12px; display:block; }
+.object-name { font-size:1.6rem; font-weight:800; margin-bottom:6px; }
+.object-hint { color:#64748B; font-size:0.9rem; }
+
+/* Buttons */
+.answer-btns {
+  display:flex; gap:16px; flex-wrap:wrap; justify-content:center;
+  max-width:500px; width:100%;
+}
+
+.ans-btn {
+  flex:1; min-width:160px;
+  padding:20px 28px;
+  border:2px solid transparent;
+  border-radius:20px;
+  font-size:1.3rem; font-weight:800;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+
+.btn-afunda {
+  background:linear-gradient(135deg,#1E3A5F,#1D4ED8);
+  border-color:#3B82F6;
+  color:white;
+  box-shadow:0 6px 20px rgba(29,78,216,0.3);
+}
+.btn-afunda:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(29,78,216,0.5); }
+
+.btn-flutua {
+  background:linear-gradient(135deg,#0C4A6E,#0891B2);
+  border-color:#06B6D4;
+  color:white;
+  box-shadow:0 6px 20px rgba(6,182,212,0.3);
+}
+.btn-flutua:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(6,182,212,0.5); }
+
+.ans-btn span:first-child { font-size:2rem; }
+.ans-btn:disabled { opacity:0.5; cursor:default; transform:none !important; }
+
+/* Feedback overlay */
+.feedback {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:20; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
+  animation:fade-in 0.2s;
+  display:none;
+}
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+.feedback.active { display:flex; }
+.feedback-icon { font-size:6rem; animation:pop 0.4s ease; }
+@keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+.feedback-title { font-size:2rem; font-weight:900; margin:10px 0; }
+.feedback-correct { color:#22C55E; }
+.feedback-wrong { color:#EF4444; }
+.feedback-explanation {
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  padding:14px 24px; border-radius:14px;
+  color:#CBD5E1; font-size:0.95rem;
+  max-width:440px; text-align:center;
+  line-height:1.6; margin:8px 20px;
+}
+.feedback-points { color:#F59E0B; font-size:1.1rem; font-weight:700; }
+.btn-next {
+  background:var(--cyan); border:none; color:white;
+  padding:12px 36px; border-radius:12px;
+  font-size:1rem; font-weight:700; cursor:pointer;
+  margin-top:16px; transition:all 0.2s;
+  box-shadow:0 4px 14px rgba(6,182,212,0.4);
+}
+.btn-next:hover { transform:scale(1.05); }
+
+/* Water animation at bottom */
+.water {
+  position:absolute; bottom:0; left:0; right:0;
+  height:100px; overflow:hidden; z-index:0;
+}
+.wave {
+  width:200%; height:100%;
+  background:linear-gradient(180deg, rgba(6,182,212,0.15) 0%, rgba(6,182,212,0.3) 100%);
+  border-radius:50% 50% 0 0 / 30px;
+  animation:wave-move 4s ease-in-out infinite;
+}
+@keyframes wave-move { 0%,100%{transform:translateX(-25%) scaleY(0.8)} 50%{transform:translateX(0) scaleY(1)} }
+
+/* Phase transition */
+#phase-transition {
+  position:fixed; top:0;left:0;right:0;bottom:0;
+  background:#0F172A; display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+  z-index:100; text-align:center;
+}
+#phase-transition.active { display:flex; }
+.pt-emoji { font-size:5rem; animation:bounce 1s infinite; margin-bottom:20px; }
+.pt-title { font-size:2.5rem; font-weight:900; color:#06B6D4; }
+.pt-sub { color:#94A3B8; margin-top:8px; }
+.pt-score { font-size:1.5rem; font-weight:700; color:#F59E0B; margin-top:16px; }
+
+/* ===== RESULTS ===== */
+#results {
+  background:linear-gradient(160deg,#0F172A,#0C4A6E);
+  text-align:center;
+}
+.res-trophy { font-size:6rem; animation:bounce 2s infinite; }
+.res-title { font-size:2.5rem; font-weight:900; margin:16px 0 8px; }
+.res-score { font-size:4rem; font-weight:900; color:#06B6D4; }
+.res-label { color:#64748B; font-size:0.9rem; }
+.res-stats {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:12px; margin:24px auto; max-width:400px;
+}
+.res-stat {
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:16px; border-radius:14px;
+}
+.res-stat-num { font-size:1.8rem; font-weight:800; color:#22D3EE; }
+.res-stat-lbl { font-size:0.7rem; color:#64748B; text-transform:uppercase; margin-top:4px; }
+.res-btn-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+.btn-primary { background:var(--cyan); border:none; color:white; padding:14px 32px;
+               border-radius:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.btn-primary:hover { transform:scale(1.05); }
+.btn-secondary { background:none; border:1px solid #334155; color:#94A3B8;
+                 padding:14px 32px; border-radius:14px; font-size:1rem;
+                 cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-block; }
+.btn-secondary:hover { border-color:#64748B; color:white; }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="intro-icon">🌊</div>
+  <div class="intro-title">Afunda ou Flutua?</div>
+  <div class="intro-sub">Você sabe por que algumas coisas afundam e outras flutuam? Teste seus conhecimentos com 30 objetos incríveis — alguns vão te surpreender!</div>
+  <div class="bncc">📚 Ciências · EF04CI01 · EF05CI05 · 4º e 5º ano</div>
+  <div class="how-to">
+    <div class="how-item">💙 3 corações de vida</div>
+    <div class="how-item">⏱️ 12 segundos por resposta</div>
+    <div class="how-item">🔥 Bônus por sequência</div>
+    <div class="how-item">📖 Explicação em cada resposta</div>
+  </div>
+  <button class="btn-start" onclick="startGame()">🚀 Começar Aventura!</button>
+  <a href="../index.html" style="text-decoration:none"><button class="btn-back">← Voltar ao Início</button></a>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-item">
+      <span class="hud-label">Pontos</span>
+      <span class="hud-value score-val" id="scoreDisplay">0</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Vidas</span>
+      <span class="hud-value lives-val" id="livesDisplay">❤️❤️❤️</span>
+    </div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="timer-bg" cx="26" cy="26" r="22"/>
+        <circle class="timer-arc" id="timerArc" cx="26" cy="26" r="22"/>
+      </svg>
+      <div class="timer-text" id="timerText">12</div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Fase</span>
+      <span class="hud-value phase-val" id="phaseDisplay">1/3</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Sequência</span>
+      <span class="hud-value streak-val" id="streakDisplay">🔥0</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+
+  <!-- Game Area -->
+  <div class="game-area" id="gameArea">
+    <div class="phase-banner" id="phaseBanner">Fase 1 — Objetos do Dia a Dia</div>
+
+    <div class="object-card" id="objectCard">
+      <span class="object-emoji" id="objEmoji">🪨</span>
+      <div class="object-name" id="objName">Pedra</div>
+      <div class="object-hint" id="objHint">Objeto comum de rocha</div>
+    </div>
+
+    <div class="answer-btns">
+      <button class="ans-btn btn-afunda" id="btnAfunda" onclick="answer('afunda')">
+        <span>💦</span>
+        <span>AFUNDA</span>
+      </button>
+      <button class="ans-btn btn-flutua" id="btnFlutua" onclick="answer('flutua')">
+        <span>🌊</span>
+        <span>FLUTUA</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Water bg -->
+  <div class="water"><div class="wave"></div></div>
+
+  <!-- Feedback -->
+  <div class="feedback" id="feedback">
+    <div class="feedback-icon" id="fbIcon">✅</div>
+    <div class="feedback-title" id="fbTitle"></div>
+    <div class="feedback-points" id="fbPoints"></div>
+    <div class="feedback-explanation" id="fbExplanation"></div>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próximo →</button>
+  </div>
+</div>
+
+<!-- PHASE TRANSITION -->
+<div id="phase-transition">
+  <div class="pt-emoji" id="ptEmoji">⭐</div>
+  <div class="pt-title" id="ptTitle">Fase Completa!</div>
+  <div class="pt-sub" id="ptSub">Prepare-se para a próxima fase!</div>
+  <div class="pt-score" id="ptScore"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-trophy" id="resTrophy">🏆</div>
+  <div class="res-title" id="resTitle">Parabéns!</div>
+  <div class="res-score" id="resScore">0</div>
+  <div class="res-label">pontos</div>
+  <div class="res-stats">
+    <div class="res-stat">
+      <div class="res-stat-num" id="resCorrect">0</div>
+      <div class="res-stat-lbl">Acertos</div>
+    </div>
+    <div class="res-stat">
+      <div class="res-stat-num" id="resWrong">0</div>
+      <div class="res-stat-lbl">Erros</div>
+    </div>
+    <div class="res-stat">
+      <div class="res-stat-num" id="resStreak">0</div>
+      <div class="res-stat-lbl">Maior Seq.</div>
+    </div>
+  </div>
+  <div class="res-btn-row">
+    <button class="btn-primary" onclick="startGame()">🔄 Jogar Novamente</button>
+    <a href="../index.html" class="btn-secondary">🏠 Menu Principal</a>
+  </div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    name: "Fase 1 — Objetos do Dia a Dia",
+    time: 12,
+    objects: [
+      { emoji:'🪨', name:'Pedra', hint:'Rocha sólida e densa', answer:'afunda',
+        exp:'A pedra afunda porque é muito densa — sua densidade é maior que a da água.' },
+      { emoji:'🍃', name:'Folha seca', hint:'Folha leve de árvore', answer:'flutua',
+        exp:'A folha flutua porque é levíssima e plana, distribuindo seu peso sobre a água.' },
+      { emoji:'🪵', name:'Pedaço de madeira', hint:'Tronco de árvore', answer:'flutua',
+        exp:'A madeira flutua! Sua densidade é menor que a da água — por isso fazemos barcos de madeira.' },
+      { emoji:'🔩', name:'Parafuso de metal', hint:'Metal pesado', answer:'afunda',
+        exp:'O metal é muito denso (denso = muito peso num pequeno espaço), então afunda.' },
+      { emoji:'🪶', name:'Pena de pássaro', hint:'Levíssima e macia', answer:'flutua',
+        exp:'A pena é tão leve que a água consegue "segurar" ela na superfície!' },
+      { emoji:'🗝️', name:'Chave de metal', hint:'Objeto de ferro', answer:'afunda',
+        exp:'A chave de metal afunda pela sua alta densidade — o ferro é bem mais pesado que a água.' },
+      { emoji:'🧻', name:'Rolha de cortiça', hint:'Tampa de garrafa natural', answer:'flutua',
+        exp:'A cortiça é um material com muitos poros (espaços de ar), muito mais leve que a água!' },
+      { emoji:'🧽', name:'Esponja seca', hint:'Material poroso para limpeza', answer:'flutua',
+        exp:'A esponja tem muitos espaços de ar dentro dela, o que a torna muito leve para flutuar.' },
+      { emoji:'🪙', name:'Moeda', hint:'Dinheiro metálico', answer:'afunda',
+        exp:'As moedas são feitas de metais densos como cobre e aço. Afundam com facilidade.' },
+      { emoji:'🎈', name:'Bola de borracha', hint:'Bola oca e leve', answer:'flutua',
+        exp:'A bola tem ar dentro! Com o ar, sua densidade total é menor que a da água.' },
+    ]
+  },
+  {
+    name: "Fase 2 — Alimentos Surpreendentes",
+    time: 10,
+    objects: [
+      { emoji:'🍎', name:'Maçã inteira', hint:'Fruta comum vermelha', answer:'flutua',
+        exp:'Surpresa! A maçã flutua — ela tem espaços de ar em seu interior. É por isso que são usadas no Dia das Bruxas para a brincadeira de pegar maçã com a boca!' },
+      { emoji:'🍇', name:'Uva', hint:'Fruta pequena e redonda', answer:'afunda',
+        exp:'A uva afunda! Sua polpa é bem densa e não tem espaços de ar suficientes para flutuar.' },
+      { emoji:'🍊', name:'Laranja com casca', hint:'Fruta cítrica laranja', answer:'flutua',
+        exp:'A laranja COM casca flutua! A casca tem muitos poros de ar que a tornam menos densa.' },
+      { emoji:'🍊', name:'Laranja SEM casca', hint:'Laranja descascada', answer:'afunda',
+        exp:'Sem a casca, a laranja afunda! Os poros de ar da casca é que faziam ela flutuar.' },
+      { emoji:'🍋', name:'Limão', hint:'Fruta amarela e ácida', answer:'flutua',
+        exp:'Assim como a laranja, o limão tem casca porosa que o ajuda a flutuar na água.' },
+      { emoji:'🥕', name:'Cenoura', hint:'Legume alaranjado', answer:'afunda',
+        exp:'A cenoura é bem densa — afunda na água. Curiosidade: cenoura cozida afunda ainda mais rápido!' },
+      { emoji:'🥒', name:'Pepino', hint:'Legume verde longo', answer:'flutua',
+        exp:'O pepino flutua! Ele tem muita água e ar em seu interior, o que reduz sua densidade.' },
+      { emoji:'🍌', name:'Banana com casca', hint:'Fruta tropical amarela', answer:'flutua',
+        exp:'A banana inteira flutua! Seu miolo esponjoso e casca mais leve a mantém na superfície.' },
+      { emoji:'🥔', name:'Batata crua', hint:'Tubérculo marrom', answer:'afunda',
+        exp:'A batata crua afunda — ela é densa demais. Mas a batata cozida pode flutuar!' },
+      { emoji:'🍉', name:'Melancia inteira', hint:'Grande fruta verde e vermelha', answer:'flutua',
+        exp:'SURPREENDENTE! A melancia enorme flutua! Ela tem tanta água e ar que fica mais leve que a água.' },
+    ]
+  },
+  {
+    name: "Fase 3 — O Grande Desafio!",
+    time: 8,
+    objects: [
+      { emoji:'🚢', name:'Navio de aço', hint:'Grande embarcação de metal pesado', answer:'flutua',
+        exp:'O MAIOR segredo: o formato importa! O navio é oco por dentro — isso distribui seu peso em uma área enorme. A quantidade de água deslocada pesa mais que o navio!' },
+      { emoji:'🧲', name:'Bola de chumbo', hint:'Metal extremamente pesado', answer:'afunda',
+        exp:'O chumbo é um dos metais mais densos que existem. Afunda imediatamente.' },
+      { emoji:'🥚', name:'Ovo fresco', hint:'Ovo recém-comprado', answer:'afunda',
+        exp:'Ovo fresco afunda — é um truque para saber se o ovo é fresco! Se afunda = fresco e bom.' },
+      { emoji:'🥚', name:'Ovo velho (podre)', hint:'Ovo guardado há muito tempo', answer:'flutua',
+        exp:'Ovo velho FLUTUA! Com o tempo, a clara seca e forma uma bolha de ar dentro. Se flutua = jogue fora!' },
+      { emoji:'🧴', name:'Garrafa plástica vazia', hint:'PET sem tampa, sem água', answer:'flutua',
+        exp:'A garrafa vazia flutua — ela é basicamente um recipiente de ar!' },
+      { emoji:'🧴', name:'Garrafa cheia d\'água', hint:'PET tampada, cheia de água', answer:'afunda',
+        exp:'Cheia de água, a garrafa afunda — não há mais ar para a fazer flutuar.' },
+      { emoji:'🧼', name:'Sabonete comum', hint:'Barra de sabão para banho', answer:'afunda',
+        exp:'A maioria dos sabonetes afunda. Mas existe um tipo especial — o Ivory — que flutua! Os engenheiros erraram a fórmula e acabaram inventando o "sabonete flutuante".' },
+      { emoji:'🏐', name:'Bola de boliche', hint:'Bola pesada de 7kg', answer:'flutua',
+        exp:'Incrível! Bolas de boliche de até 7kg FLUTUAM! Elas são feitas de material especial com muito ar dentro.' },
+      { emoji:'🧊', name:'Cubo de gelo', hint:'Água congelada', answer:'flutua',
+        exp:'O gelo flutua na água! O gelo é menos denso que a água líquida — por isso os icebergs ficam na superfície do oceano.' },
+      { emoji:'🪙', name:'Moeda sobre a água (devagar)', hint:'Colocando muito suavemente', answer:'flutua',
+        exp:'Se colocar uma moeda MUY DEVAGAR sobre a água, ela pode flutuar! A tensão superficial da água a sustenta. Mas com qualquer agitação, ela afunda.' },
+    ]
+  }
+];
+
+let state = {
+  phase: 0, qIdx: 0, score: 0, lives: 3,
+  streak: 0, maxStreak: 0, correct: 0, wrong: 0,
+  timerInterval: null, timeLeft: 12,
+  totalQ: 30, answered: 0
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  state = { phase:0, qIdx:0, score:0, lives:3, streak:0, maxStreak:0,
+            correct:0, wrong:0, timerInterval:null, timeLeft:12, totalQ:30, answered:0 };
+  showScreen('game');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const phase = PHASES[state.phase];
+  const obj = phase.objects[state.qIdx];
+
+  document.getElementById('phaseBanner').textContent = phase.name;
+  document.getElementById('objEmoji').textContent = obj.emoji;
+  document.getElementById('objName').textContent = obj.name;
+  document.getElementById('objHint').textContent = obj.hint;
+
+  // Reset object card animation
+  const card = document.getElementById('objectCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'card-in 0.4s ease';
+
+  document.getElementById('btnAfunda').disabled = false;
+  document.getElementById('btnFlutua').disabled = false;
+
+  updateHUD();
+  startTimer(phase.time);
+}
+
+function updateHUD() {
+  document.getElementById('scoreDisplay').textContent = state.score;
+  const hearts = '❤️'.repeat(state.lives) + '🖤'.repeat(3 - state.lives);
+  document.getElementById('livesDisplay').textContent = hearts;
+  document.getElementById('phaseDisplay').textContent = `${state.phase + 1}/3`;
+  document.getElementById('streakDisplay').textContent = `🔥${state.streak}`;
+  const total = PHASES.reduce((a,p) => a + p.objects.length, 0);
+  const done = PHASES.slice(0, state.phase).reduce((a,p) => a + p.objects.length, 0) + state.qIdx;
+  document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+}
+
+function startTimer(seconds) {
+  clearInterval(state.timerInterval);
+  state.timeLeft = seconds;
+  updateTimerDisplay(seconds, seconds);
+
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerDisplay(state.timeLeft, seconds);
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      timeOut();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(t, max) {
+  document.getElementById('timerText').textContent = t;
+  const arc = document.getElementById('timerArc');
+  const circumference = 138;
+  const offset = circumference * (1 - t / max);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = t <= 3 ? '#EF4444' : t <= 6 ? '#F59E0B' : '#06B6D4';
+  document.getElementById('timerText').style.color = t <= 3 ? '#EF4444' : 'white';
+}
+
+function timeOut() {
+  const obj = PHASES[state.phase].objects[state.qIdx];
+  showFeedback(false, obj, 0, true);
+}
+
+function answer(choice) {
+  clearInterval(state.timerInterval);
+  const obj = PHASES[state.phase].objects[state.qIdx];
+  const correct = choice === obj.answer;
+
+  let pts = 0;
+  if (correct) {
+    pts = 10 + (state.timeLeft * 2);
+    if (state.streak >= 2) pts = Math.floor(pts * (1 + state.streak * 0.2));
+    state.score += pts;
+    state.streak++;
+    state.maxStreak = Math.max(state.maxStreak, state.streak);
+    state.correct++;
+  } else {
+    state.lives--;
+    state.streak = 0;
+    state.wrong++;
+  }
+
+  showFeedback(correct, obj, pts, false);
+}
+
+function showFeedback(correct, obj, pts, timeout) {
+  const fb = document.getElementById('feedback');
+  fb.classList.add('active');
+
+  document.getElementById('fbIcon').textContent = timeout ? '⏰' : correct ? '✅' : '❌';
+  document.getElementById('fbTitle').textContent = timeout ? 'Tempo Esgotado!' : correct ? 'CORRETO!' : 'ERRADO!';
+  document.getElementById('fbTitle').className = 'feedback-title ' + (correct ? 'feedback-correct' : 'feedback-wrong');
+
+  if (!timeout && !correct && state.lives <= 0) {
+    document.getElementById('fbPoints').textContent = '💔 Você perdeu todas as vidas!';
+  } else {
+    document.getElementById('fbPoints').textContent = correct
+      ? `+${pts} pontos! ${state.streak > 1 ? '🔥 Sequência ' + state.streak + 'x!' : ''}`
+      : timeout ? `A resposta era: ${obj.answer === 'afunda' ? '💦 AFUNDA' : '🌊 FLUTUA'}`
+               : `Resposta correta: ${obj.answer === 'afunda' ? '💦 AFUNDA' : '🌊 FLUTUA'}`;
+  }
+
+  document.getElementById('fbExplanation').innerHTML = `
+    <strong>${obj.emoji} ${obj.name}:</strong> ${obj.exp}
+  `;
+
+  document.getElementById('btnAfunda').disabled = true;
+  document.getElementById('btnFlutua').disabled = true;
+
+  // Auto-advance after 3s or wait for click
+  if (correct && !timeout) {
+    setTimeout(() => { if (document.getElementById('feedback').classList.contains('active')) nextQuestion(); }, 2500);
+  }
+}
+
+function nextQuestion() {
+  document.getElementById('feedback').classList.remove('active');
+
+  if (state.lives <= 0) { showResults(); return; }
+
+  state.qIdx++;
+  state.answered++;
+
+  const phase = PHASES[state.phase];
+  if (state.qIdx >= phase.objects.length) {
+    // Phase complete
+    if (state.phase < PHASES.length - 1) {
+      showPhaseTransition();
+    } else {
+      showResults();
+    }
+  } else {
+    loadQuestion();
+  }
+}
+
+function showPhaseTransition() {
+  const pt = document.getElementById('phase-transition');
+  pt.classList.add('active');
+  const phaseEmojis = ['🎯','⚡','🏆'];
+  document.getElementById('ptEmoji').textContent = phaseEmojis[state.phase];
+  document.getElementById('ptTitle').textContent = `Fase ${state.phase + 1} Completa!`;
+  document.getElementById('ptSub').textContent = 'Prepare-se — os próximos objetos são mais difíceis!';
+  document.getElementById('ptScore').textContent = `🌟 ${state.score} pontos`;
+
+  setTimeout(() => {
+    pt.classList.remove('active');
+    state.phase++;
+    state.qIdx = 0;
+    loadQuestion();
+  }, 2500);
+}
+
+function showResults() {
+  showScreen('results');
+
+  const pct = Math.round((state.correct / (state.correct + state.wrong)) * 100) || 0;
+  let trophy = '🏆'; let title = 'Incrível!';
+  if (pct < 50) { trophy = '📚'; title = 'Continue Estudando!'; }
+  else if (pct < 70) { trophy = '⭐'; title = 'Bom trabalho!'; }
+  else if (pct < 90) { trophy = '🥇'; title = 'Muito bem!'; }
+
+  document.getElementById('resTrophy').textContent = trophy;
+  document.getElementById('resTitle').textContent = title;
+  document.getElementById('resScore').textContent = state.score;
+  document.getElementById('resCorrect').textContent = state.correct;
+  document.getElementById('resWrong').textContent = state.wrong;
+  document.getElementById('resStreak').textContent = state.maxStreak;
+
+  localStorage.setItem('hs_afunda-flutua', state.score);
+}
+</script>
+</body>
+</html>

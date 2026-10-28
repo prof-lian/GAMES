@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundo dos Seres Vivos 🌿</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#021A0A;color:white;min-height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 40% 30%,#052E0F 0%,#021A0A 60%);z-index:-1}
+
+.screen{display:none;width:100%;height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.active{display:flex}
+
+/* INTRO */
+#intro{text-align:center}
+.nature-icon{font-size:5.5rem;animation:sway 3s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.05)}}
+.intro-title{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;color:#22C55E;margin-bottom:8px}
+.intro-sub{color:#94A3B8;font-size:1rem;max-width:480px;margin:0 auto 16px;line-height:1.6}
+.bncc{background:rgba(34,197,94,.12);border:1px solid #22C55E;padding:8px 18px;
+      border-radius:12px;color:#BBF7D0;font-size:.82rem;margin-bottom:20px;display:inline-block}
+.topics-grid{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.topic-chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+           padding:10px 16px;border-radius:12px;font-size:.8rem;color:#86EFAC;display:flex;align-items:center;gap:6px}
+.btn-start{background:linear-gradient(90deg,#15803D,#22C55E);border:none;color:white;
+           padding:16px 48px;border-radius:16px;font-size:1.2rem;font-weight:800;cursor:pointer;
+           transition:all .2s;box-shadow:0 8px 24px rgba(34,197,94,.4)}
+.btn-start:hover{transform:scale(1.05) translateY(-2px)}
+.btn-back{background:none;border:1px solid #14532D;color:#166534;padding:8px 20px;
+          border-radius:8px;cursor:pointer;font-size:.85rem;margin-top:12px;transition:all .2s}
+.btn-back:hover{border-color:#22C55E;color:#22C55E}
+
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
+     justify-content:space-between;padding:12px 20px;background:rgba(0,0,0,.55);
+     backdrop-filter:blur(8px);z-index:10;gap:8px;flex-wrap:wrap}
+.hud-item{display:flex;flex-direction:column;align-items:center;min-width:55px}
+.hud-label{font-size:.62rem;color:#64748B;text-transform:uppercase;letter-spacing:1px}
+.hud-val{font-size:1.1rem;font-weight:800}
+.sv{color:#22C55E}.lv{color:#EF4444;font-size:1.3rem}.pv{color:#86EFAC}.stv{color:#F59E0B}
+.timer-wrap{position:relative;width:52px;height:52px}
+.timer-svg{transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:#052E0F;stroke-width:4}
+.t-arc{fill:none;stroke:#22C55E;stroke-width:4;stroke-linecap:round;
+       stroke-dasharray:138;stroke-dashoffset:0;transition:stroke-dashoffset .1s}
+.t-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1rem;font-weight:800;color:white}
+.progress-bar{position:absolute;top:68px;left:0;right:0;height:4px;background:#052E0F;z-index:10}
+.progress-fill{height:100%;background:linear-gradient(90deg,#15803D,#22C55E,#86EFAC);transition:width .5s ease;border-radius:2px}
+
+/* GAME */
+#game{position:relative;padding:0}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+           padding:80px 20px 20px;gap:20px;position:relative;z-index:1}
+.phase-badge{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);
+             padding:6px 18px;border-radius:20px;color:#86EFAC;font-size:.85rem;font-weight:600}
+
+.q-card{background:rgba(255,255,255,.04);border:2px solid rgba(34,197,94,.2);
+        border-radius:24px;padding:26px 36px;text-align:center;backdrop-filter:blur(10px);
+        animation:card-in .4s ease;max-width:560px;width:100%}
+@keyframes card-in{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.q-emoji{font-size:3.5rem;margin-bottom:8px;display:block}
+.q-tag{font-size:.72rem;color:#15803D;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.q-text{font-size:clamp(1rem,2.5vw,1.3rem);font-weight:700;line-height:1.5;margin-bottom:6px}
+.q-sub{color:#64748B;font-size:.82rem;font-style:italic}
+
+.opts-col{display:flex;flex-direction:column;gap:10px;max-width:520px;width:100%}
+.opt-btn{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);
+         border-radius:14px;padding:14px 20px;font-size:1rem;font-weight:600;color:white;
+         cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:10px}
+.opt-btn:hover:not(:disabled){background:rgba(34,197,94,.12);border-color:#22C55E}
+.opt-btn.correct{background:rgba(34,197,94,.18)!important;border-color:#22C55E!important;color:#22C55E!important}
+.opt-btn.wrong{background:rgba(239,68,68,.15)!important;border-color:#EF4444!important;color:#EF4444!important}
+.opt-btn:disabled{cursor:default}
+.opt-letter{background:rgba(255,255,255,.08);width:28px;height:28px;border-radius:8px;
+            display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0}
+
+/* Feedback */
+.feedback{position:absolute;top:0;left:0;right:0;bottom:0;display:none;
+          flex-direction:column;align-items:center;justify-content:center;
+          z-index:20;background:rgba(0,0,0,.78);backdrop-filter:blur(4px)}
+.feedback.active{display:flex}
+.fb-icon{font-size:5rem;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fb-title{font-size:2rem;font-weight:900;margin:10px 0}
+.fb-correct{color:#22C55E}.fb-wrong{color:#EF4444}
+.fb-pts{color:#F59E0B;font-size:1.1rem;font-weight:700}
+.fb-exp{background:rgba(255,255,255,.06);border:1px solid rgba(34,197,94,.2);
+        padding:14px 22px;border-radius:14px;color:#CBD5E1;font-size:.9rem;
+        max-width:440px;text-align:center;line-height:1.6;margin:8px 20px}
+.btn-next{background:#22C55E;border:none;color:#021A0A;padding:12px 36px;border-radius:12px;
+          font-size:1rem;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
+.btn-next:hover{transform:scale(1.05);background:#16A34A;color:white}
+
+/* Phase trans */
+#phase-trans{position:fixed;top:0;left:0;right:0;bottom:0;background:#021A0A;display:none;
+             flex-direction:column;align-items:center;justify-content:center;z-index:100;text-align:center}
+#phase-trans.active{display:flex}
+.pt-emoji{font-size:5rem;animation:sway 1.5s ease-in-out infinite;margin-bottom:16px}
+.pt-title{font-size:2.5rem;font-weight:900;color:#22C55E}
+.pt-sub{color:#94A3B8;margin-top:8px}
+.pt-score{font-size:1.5rem;font-weight:700;color:#F59E0B;margin-top:14px}
+
+/* Floating leaves */
+.leaf{position:fixed;pointer-events:none;animation:leaf-fall 8s linear infinite;z-index:0;opacity:.4}
+@keyframes leaf-fall{0%{transform:translateY(-50px) rotate(0deg);opacity:0}10%{opacity:.4}90%{opacity:.4}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+
+/* RESULTS */
+#results{text-align:center}
+.res-icon{font-size:5rem;animation:sway 2s ease-in-out infinite}
+.res-title{font-size:2.5rem;font-weight:900;margin:16px 0 6px}
+.res-score{font-size:4rem;font-weight:900;color:#22C55E}
+.res-lbl{color:#64748B;font-size:.9rem}
+.res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px auto;max-width:380px}
+.rs{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px;border-radius:14px}
+.rs-num{font-size:1.8rem;font-weight:800;color:#86EFAC}
+.rs-lbl{font-size:.7rem;color:#64748B;text-transform:uppercase;margin-top:4px}
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn-p{background:#22C55E;border:none;color:#021A0A;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+.btn-p:hover{transform:scale(1.05)}
+.btn-s{background:none;border:1px solid #14532D;color:#94A3B8;padding:14px 32px;border-radius:14px;font-size:1rem;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-s:hover{border-color:#22C55E;color:white}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="nature-icon">🌿</div>
+  <div class="intro-title">Mundo dos Seres Vivos</div>
+  <div class="intro-sub">Torne-se um explorador da natureza! Descubra os segredos dos seres vivos, cadeias alimentares, ecossistemas e muito mais!</div>
+  <div class="bncc">📚 Ciências · EF04CI05 · EF05CI04 · EF05CI06 · 4º e 5º ano</div>
+  <div class="topics-grid">
+    <div class="topic-chip">🔗 Cadeia Alimentar</div>
+    <div class="topic-chip">🌱 Seres Vivos</div>
+    <div class="topic-chip">💧 Ciclo da Água</div>
+    <div class="topic-chip">🌡️ Estados da Matéria</div>
+    <div class="topic-chip">🌎 Ecossistemas</div>
+  </div>
+  <button class="btn-start" onclick="startGame()">🔬 Explorar!</button>
+  <a href="../index.html" style="text-decoration:none"><button class="btn-back">← Menu Principal</button></a>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game" style="position:relative">
+  <div class="hud">
+    <div class="hud-item"><span class="hud-label">Pontos</span><span class="hud-val sv" id="scoreD">0</span></div>
+    <div class="hud-item"><span class="hud-label">Vidas</span><span class="hud-val lv" id="livesD">❤❤❤</span></div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="52" height="52" viewBox="0 0 52 52">
+        <circle class="t-bg" cx="26" cy="26" r="22"/>
+        <circle class="t-arc" id="tArc" cx="26" cy="26" r="22"/>
+      </svg>
+      <div class="t-txt" id="tTxt">15</div>
+    </div>
+    <div class="hud-item"><span class="hud-label">Fase</span><span class="hud-val pv" id="phaseD">1/3</span></div>
+    <div class="hud-item"><span class="hud-label">Streak</span><span class="hud-val stv" id="streakD">🔥0</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="game-area">
+    <div class="phase-badge" id="phaseBadge">Fase 1 — Seres Vivos e Não Vivos</div>
+    <div class="q-card" id="qCard">
+      <span class="q-emoji" id="qEmoji">🌱</span>
+      <div class="q-tag" id="qTag">Seres Vivos</div>
+      <div class="q-text" id="qText">Qual dessas características é exclusiva dos seres vivos?</div>
+      <div class="q-sub" id="qSub"></div>
+    </div>
+    <div class="opts-col" id="optsCol"></div>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fbI">✅</div>
+    <div class="fb-title" id="fbT">CORRETO!</div>
+    <div class="fb-pts" id="fbP"></div>
+    <div class="fb-exp" id="fbE"></div>
+    <button class="btn-next" onclick="nextQ()">Próxima →</button>
+  </div>
+</div>
+
+<!-- PHASE TRANSITION -->
+<div id="phase-trans">
+  <div class="pt-emoji" id="ptE">🌟</div>
+  <div class="pt-title" id="ptT">Fase Completa!</div>
+  <div class="pt-sub" id="ptS">Próximo tema!</div>
+  <div class="pt-score" id="ptSc"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-icon">🌿</div>
+  <div class="res-title" id="resT">Explorador da Natureza!</div>
+  <div class="res-score" id="resSc">0</div>
+  <div class="res-lbl">pontos</div>
+  <div class="res-stats">
+    <div class="rs"><div class="rs-num" id="resC">0</div><div class="rs-lbl">Acertos</div></div>
+    <div class="rs"><div class="rs-num" id="resW">0</div><div class="rs-lbl">Erros</div></div>
+    <div class="rs"><div class="rs-num" id="resMx">0</div><div class="rs-lbl">Maior Seq.</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-p" onclick="startGame()">🔄 Jogar Novamente</button>
+    <a href="../index.html" class="btn-s">🏠 Menu Principal</a>
+  </div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    name:"Fase 1 — Seres Vivos e Não Vivos",
+    badge:"Fase 1 — Seres Vivos e Não Vivos",
+    time:15,
+    qs:[
+      { emoji:"🌱", tag:"Seres Vivos", text:"O que os seres vivos fazem e os não vivos NÃO fazem?",
+        opts:["A) Ocupam espaço","B) Têm peso","C) Se reproduzem","D) Têm cor"], ans:2,
+        exp:"Seres vivos nascem, crescem, se reproduzem e morrem. Essa é a principal diferença! Pedras têm peso e cor, mas não se reproduzem." },
+      { emoji:"🌡️", tag:"Estados da Matéria", text:"A água pode estar em 3 estados. Qual NÃO é um estado da água?",
+        opts:["A) Sólido (gelo)","B) Líquido (água)","C) Gasoso (vapor)","D) Plasma (fogo)"], ans:3,
+        exp:"A água existe como sólido, líquido e gasoso. Plasma é um 4º estado da matéria, mas a água não existe naturalmente como plasma em condições normais." },
+      { emoji:"🍄", tag:"Seres Vivos", text:"O cogumelo é um ser vivo. A qual reino ele pertence?",
+        opts:["A) Plantae (Plantas)","B) Animalia (Animais)","C) Fungi (Fungos)","D) Monera (Bactérias)"], ans:2,
+        exp:"Cogumelos pertencem ao Reino Fungi! Eles são diferentes das plantas (não fazem fotossíntese) e dos animais. Se alimentam decompondo matéria orgânica." },
+      { emoji:"🔬", tag:"Seres Vivos", text:"Qual é a menor unidade dos seres vivos?",
+        opts:["A) Órgão","B) Tecido","C) Sistema","D) Célula"], ans:3,
+        exp:"A célula é a menor unidade da vida! Cada ser vivo é feito de células. Bactérias têm 1 célula; o corpo humano tem trilhões!" },
+      { emoji:"🌿", tag:"Fotossíntese", text:"As plantas fazem fotossíntese. O que elas produzem?",
+        opts:["A) Apenas CO₂ e água","B) Gás carbônico","C) Glicose (açúcar) e oxigênio","D) Nitrogênio e hidrogênio"], ans:2,
+        exp:"Na fotossíntese: Luz + CO₂ + H₂O → Glicose (alimento) + O₂. As plantas produzem seu próprio alimento E o oxigênio que respiramos!" },
+      { emoji:"🌊", tag:"Ciclo da Água", text:"Na chuva, a água vem das nuvens. Como ela chegou lá?",
+        opts:["A) Por absorção do solo","B) Por evaporação e condensação","C) Por fotossíntese das plantas","D) Por respiração dos animais"], ans:1,
+        exp:"O ciclo da água: Evaporação (água vira vapor) → Condensação (vapor forma nuvens) → Precipitação (chuva/neve). Um ciclo contínuo!" },
+      { emoji:"🐛", tag:"Metamorfose", text:"A borboleta passa por 4 fases. Qual é a ordem correta?",
+        opts:["A) Ovo→Borboleta→Lagarta→Casulo","B) Ovo→Lagarta→Casulo→Borboleta","C) Lagarta→Ovo→Casulo→Borboleta","D) Casulo→Lagarta→Ovo→Borboleta"], ans:1,
+        exp:"Metamorfose completa: Ovo → Lagarta (come muito!) → Casulo/Crisálida (transforma-se) → Borboleta adulta! É um processo incrível de transformação." },
+      { emoji:"🌡️", tag:"Estados da Matéria", text:"Quando o gelo derrete, isso se chama:",
+        opts:["A) Evaporação","B) Solidificação","C) Fusão","D) Condensação"], ans:2,
+        exp:"Fusão = sólido → líquido (gelo derrete). Solidificação = líquido → sólido (água congela). Evaporação = líquido → gás." },
+      { emoji:"🦠", tag:"Microrganismos", text:"Vírus e bactérias são diferentes. O que é CORRETO?",
+        opts:["A) Ambos são organismos vivos","B) Vírus são vivos; bactérias não","C) Bactérias têm célula; vírus não","D) Bactérias são maiores que vírus"], ans:2,
+        exp:"Bactérias são células completas — são seres vivos! Vírus são proteínas com DNA/RNA — não têm célula própria. Bactérias são bem maiores que vírus." },
+      { emoji:"🌱", tag:"Plantas", text:"Qual parte da planta absorve água e nutrientes do solo?",
+        opts:["A) Folha","B) Caule","C) Raiz","D) Flor"], ans:2,
+        exp:"A raiz fixa a planta no solo e absorve água e sais minerais. O caule distribui esses nutrientes. As folhas fazem fotossíntese!" },
+      { emoji:"🌡️", tag:"Estados da Matéria", text:"Qual processo transforma vapor em líquido?",
+        opts:["A) Evaporação","B) Condensação","C) Sublimação","D) Fusão"], ans:1,
+        exp:"Condensação = gás → líquido. Acontece quando o vapor esfria: gotinhas no vidro frio, nuvens no céu, sereno na grama pela manhã." },
+      { emoji:"🍂", tag:"Seres Vivos", text:"Que tipo de ser vivo são os fungos como bolores e leveduras?",
+        opts:["A) São plantas microscópicas","B) São animais simples","C) Pertencem ao Reino Fungi","D) São bactérias maiores"], ans:2,
+        exp:"Fungos formam um reino à parte! Incluem: cogumelos, bolores, fermentos. Eles se alimentam por absorção e não fazem fotossíntese." },
+      { emoji:"💧", tag:"Ciclo da Água", text:"A água doce representa quanto da água da Terra?",
+        opts:["A) 97%","B) 71%","C) 3%","D) 50%"], ans:2,
+        exp:"97% da água da Terra é salgada (oceanos)! Apenas 3% é doce, e grande parte está congelada nas calotas polares. Agua potável = muito preciosa!" },
+        { emoji:"🌿", tag:"Fotossíntese", text:"Qual pigmento nas folhas realiza a fotossíntese?",
+        opts:["A) Melanina","B) Clorofila","C) Hemoglobina","D) Caroteno"], ans:1,
+        exp:"A clorofila é o pigmento verde das plantas! Ela captura a energia da luz solar para fazer fotossíntese. Por isso as plantas são verdes!" },
+      { emoji:"🔬", tag:"Células", text:"Qual estrutura controla as funções da célula?",
+        opts:["A) Membrana celular","B) Citoplasma","C) Núcleo","D) Parede celular"], ans:2,
+        exp:"O núcleo é o 'cérebro' da célula! Ele contém o DNA com todas as informações genéticas e controla todas as atividades celulares." },
+    ]
+  },
+  {
+    name:"Fase 2 — Cadeia Alimentar e Ecossistemas",
+    badge:"Fase 2 — Cadeia Alimentar e Ecossistemas",
+    time:13,
+    qs:[
+      { emoji:"🦁", tag:"Cadeia Alimentar", text:"Na cadeia: Grama→Zebra→Leão. O leão é:",
+        opts:["A) Produtor","B) Consumidor primário","C) Consumidor terciário","D) Consumidor secundário"], ans:3,
+        exp:"Produtores = plantas (grama). Consumidor primário = herbívoro (zebra). Consumidor secundário = carnívoro que come herbívoro (leão). A energia passa de elo em elo!" },
+      { emoji:"🍂", tag:"Decomposição", text:"Fungos e bactérias que decompõem matéria orgânica são:",
+        opts:["A) Produtores","B) Consumidores","C) Decompositores","D) Parasitas"], ans:2,
+        exp:"Decompositores reciclam a matéria! Fungos e bactérias decompõem animais e plantas mortas, devolvendo nutrientes ao solo para novas plantas crescerem." },
+      { emoji:"🌊", tag:"Ecossistema", text:"Qual dessas opções NÃO é um ecossistema?",
+        opts:["A) Floresta Amazônica","B) Deserto do Saara","C) Fundo do oceano","D) Carro abandonado"], ans:3,
+        exp:"Um ecossistema é um conjunto de seres vivos + ambiente físico em equilíbrio. Um carro não tem esse conjunto natural de seres vivos interagindo." },
+      { emoji:"🐝", tag:"Cadeia Alimentar", text:"Abelhas polinizam flores. Essa relação é chamada de:",
+        opts:["A) Parasitismo","B) Predação","C) Mutualismo","D) Comensalismo"], ans:2,
+        exp:"Mutualismo = ambos se beneficiam! A abelha ganha néctar (alimento), a flor ganha polinização (reprodução). Os dois ganham!" },
+      { emoji:"🦅", tag:"Cadeia Alimentar", text:"Se a população de coelhos diminuir muito, o que acontece com as raposas?",
+        opts:["A) Nada, elas comem outra coisa","B) Aumentam, pois têm mais espaço","C) Diminuem, pois perdem alimento","D) Ficam maiores para comer outras presas"], ans:2,
+        exp:"Cadeia alimentar em desequilíbrio! Se coelhos (presa) diminuem → raposas (predador) diminuem por falta de alimento. Cada elo afeta os outros!" },
+      { emoji:"🌳", tag:"Ecossistema", text:"O que sustenta qualquer cadeia alimentar?",
+        opts:["A) Os animais carnívoros","B) Os decompositores","C) Os produtores (plantas)","D) Os animais onívoros"], ans:2,
+        exp:"Os produtores (plantas) são a BASE de tudo! Eles capturam a energia solar e a transformam em alimento. Sem produtores, toda cadeia alimentar colapsa." },
+      { emoji:"🌵", tag:"Adaptação", text:"O cacto guarda água em seu caule. Isso é uma:",
+        opts:["A) Mutação genética","B) Adaptação ao ambiente","C) Doença da planta","D) Comportamento aprendido"], ans:1,
+        exp:"Adaptação! Ao longo de milênios, cactos se adaptaram ao deserto: folhas viram espinhos (perdem menos água) e o caule gordo armazena água." },
+      { emoji:"🐟", tag:"Cadeia Alimentar", text:"Alga→Camarão→Peixe→Tubarão. Quem é o consumidor primário?",
+        opts:["A) Alga","B) Camarão","C) Peixe","D) Tubarão"], ans:1,
+        exp:"Consumidor primário é quem come o produtor diretamente. Alga = produtor. Camarão come alga = consumidor primário. Peixe = secundário. Tubarão = terciário." },
+      { emoji:"🌿", tag:"Biomas", text:"Qual é o maior bioma do Brasil?",
+        opts:["A) Cerrado","B) Caatinga","C) Mata Atlântica","D) Amazônia"], ans:3,
+        exp:"A Amazônia é o maior bioma brasileiro, cobrindo mais de 4 milhões de km². É a maior floresta tropical do mundo e essencial para o clima global!" },
+      { emoji:"🐋", tag:"Adaptação", text:"Baleias são mamíferos que vivem no mar. Para respirar, elas:",
+        opts:["A) Têm brânquias","B) Absorvem O₂ da água","C) Sobem à superfície para respirar","D) Armazenam oxigênio nas nadadeiras"], ans:2,
+        exp:"Baleias são mamíferos — precisam de ar! Elas sobem à superfície, expiram (o famoso jato d'água!) e inalam ar fresco. Podem mergulhar por até 2 horas!" },
+      { emoji:"🌊", tag:"Ecossistema", text:"Qual ação humana prejudica mais os ecossistemas?",
+        opts:["A) Plantar árvores nativas","B) Desmatamento e queimadas","C) Criar animais silvestres em zoológicos","D) Pesquisar sobre a natureza"], ans:1,
+        exp:"Desmatamento e queimadas destroem habitats, extinguem espécies, alteram o ciclo da água e aumentam o CO₂ na atmosfera. É a maior ameaça à biodiversidade!" },
+      { emoji:"🦋", tag:"Cadeia Alimentar", text:"O ser humano é considerado um animal:",
+        opts:["A) Herbívoro","B) Carnívoro","C) Onívoro","D) Decompositores"], ans:2,
+        exp:"Onívoro = come de tudo (vegetais E animais). Herbívoros só comem plantas (vaca). Carnívoros só comem animais (leão). Onívoros têm dieta variada (humanos, urubus)." },
+      { emoji:"🌱", tag:"Solo", text:"O que os decompositores devolvem ao solo?",
+        opts:["A) Luz solar","B) Oxigênio puro","C) Água limpa","D) Nutrientes minerais"], ans:3,
+        exp:"Os decompositores (fungos e bactérias) quebram matéria morta e liberam nutrientes minerais no solo. Sem eles, os nutrientes ficariam presos em corpos mortos!" },
+      { emoji:"🦎", tag:"Adaptação", text:"O lagarto muda de cor para se camuflar. Isso é:",
+        opts:["A) Mimetismo","B) Camuflagem","C) Mutação","D) Metamorfose"], ans:1,
+        exp:"Camuflagem = disfarçar-se no ambiente. Mimetismo = imitar outro animal (ex: cobra falsa coral imita a venenosa). O lagarto usa camuflagem para se esconder!" },
+      { emoji:"🔗", tag:"Teia Alimentar", text:"Uma teia alimentar é diferente de uma cadeia porque:",
+        opts:["A) Tem menos animais","B) É mais simples","C) Mostra várias relações alimentares ao mesmo tempo","D) Só tem produtores e consumidores primários"], ans:2,
+        exp:"Teia alimentar = várias cadeias conectadas! Na natureza real, os animais comem várias coisas. A teia mostra todas essas conexões complexas entre os seres." },
+    ]
+  },
+  {
+    name:"Fase 3 — Corpo Humano e Saúde",
+    badge:"Fase 3 — Corpo Humano e Saúde",
+    time:11,
+    qs:[
+      { emoji:"❤️", tag:"Corpo Humano", text:"Qual órgão bombeia o sangue para todo o corpo?",
+        opts:["A) Pulmão","B) Fígado","C) Coração","D) Rim"], ans:2,
+        exp:"O coração é uma bomba muscular que bate ~70 vezes por minuto, 100.000 vezes por dia! Ele bombeia sangue levando oxigênio e nutrientes a todas as células." },
+      { emoji:"🫁", tag:"Respiração", text:"Qual sistema é responsável pela respiração?",
+        opts:["A) Sistema digestório","B) Sistema respiratório","C) Sistema circulatório","D) Sistema nervoso"], ans:1,
+        exp:"Sistema respiratório: nariz→faringe→laringe→traqueia→brônquios→pulmões. O oxigênio entra e o gás carbônico sai em cada respiração!" },
+      { emoji:"🦷", tag:"Higiene", text:"Por que devemos escovar os dentes após as refeições?",
+        opts:["A) Para clarear os dentes","B) Para remover bactérias que produzem ácidos","C) Para fortalecer o esmalte","D) Para evitar mau hálito apenas"], ans:1,
+        exp:"Bactérias na boca consomem açúcar e produzem ácidos que corroem o esmalte dos dentes (cárie). Escovar remove essas bactérias e previne a cárie!" },
+      { emoji:"🧠", tag:"Sistema Nervoso", text:"Qual órgão controla todos os movimentos e pensamentos?",
+        opts:["A) Coração","B) Fígado","C) Cérebro","D) Medula"], ans:2,
+        exp:"O cérebro é o centro de controle do corpo! Ele processa informações, controla movimentos, armazena memórias e é responsável pelos pensamentos e emoções." },
+      { emoji:"🦴", tag:"Esqueleto", text:"Quantos ossos tem o corpo humano adulto?",
+        opts:["A) 108","B) 206","C) 350","D) 512"], ans:1,
+        exp:"206 ossos! Bebês nascem com ~270 ossos, que vão se fundindo. Os ossos protegem órgãos, sustentam o corpo e, junto com músculos, permitem movimento." },
+      { emoji:"💉", tag:"Imunidade", text:"As vacinas servem para:",
+        opts:["A) Curar doenças já instaladas","B) Deixar o sangue mais limpo","C) Preparar o sistema imune contra doenças","D) Fornecer nutrientes ao corpo"], ans:2,
+        exp:"Vacinas ensinam o sistema imune a reconhecer e combater doenças ANTES de você pegar! Elas usam partes inativadas do vírus/bactéria para criar anticorpos protetores." },
+      { emoji:"🍎", tag:"Alimentação", text:"Qual nutriente fornece mais energia rápida ao corpo?",
+        opts:["A) Vitaminas","B) Proteínas","C) Carboidratos","D) Minerais"], ans:2,
+        exp:"Carboidratos (arroz, pão, batata) são a principal fonte de energia rápida do corpo! Proteínas constroem músculos. Vitaminas regulam funções. Gorduras dão energia lenta." },
+      { emoji:"💪", tag:"Músculos", text:"O que acontece com os músculos quando você se exercita regularmente?",
+        opts:["A) Ficam menores e mais fracos","B) Ficam maiores e mais fortes","C) Não mudam","D) Ficam maiores mas mais fracos"], ans:1,
+        exp:"Exercício regular faz os músculos crescerem (hipertrofia) e ficarem mais fortes! O corpo adapta os músculos ao esforço. Use ou perca — os músculos diminuem sem uso!" },
+      { emoji:"🫀", tag:"Circulação", text:"O que transporta o sangue pelo corpo?",
+        opts:["A) Nervos","B) Tendões","C) Vasos sanguíneos","D) Ductos biliares"], ans:2,
+        exp:"Vasos sanguíneos: artérias (sangue do coração), veias (sangue ao coração) e capilares (minúsculos). Todo o corpo é irrigado por ~100.000 km de vasos!" },
+      { emoji:"🌞", tag:"Vitaminas", text:"Qual vitamina o corpo produz ao tomar sol?",
+        opts:["A) Vitamina A","B) Vitamina B12","C) Vitamina C","D) Vitamina D"], ans:3,
+        exp:"Vitamina D é produzida pela pele ao receber luz solar! Ela é essencial para absorção do cálcio e fortalecimento dos ossos. 15-20 min de sol por dia ajuda muito!" },
+      { emoji:"💧", tag:"Hidratação", text:"Por que precisamos beber água todos os dias?",
+        opts:["A) Para não sentir fome","B) Porque o corpo perde água constantemente","C) Apenas quando fazemos exercícios","D) Para o sangue ser vermelho"], ans:1,
+        exp:"O corpo humano é 60-70% água! Perdemos água constantemente: suor, urina, respiração. Sem reposição diária, o corpo entra em desidratação — muito perigoso!" },
+      { emoji:"🦠", tag:"Doenças", text:"Doenças como gripe e dengue são causadas por:",
+        opts:["A) Bactérias","B) Fungos","C) Vírus","D) Parasitas"], ans:2,
+        exp:"Gripe e dengue são causadas por vírus! COVID-19 também. Bactérias causam: tuberculose, impetigo. Fungos causam: micose. Parasitas: malária (protozoário), lombriga." },
+      { emoji:"😴", tag:"Saúde", text:"Por que o sono é importante para a saúde das crianças?",
+        opts:["A) Para ficar com preguiça","B) Para crescer e consolidar a memória","C) Para não ter que estudar","D) Serve apenas para descanso"], ans:1,
+        exp:"Durante o sono, o corpo de crianças produz hormônio de crescimento! O cérebro 'salva' as memórias do dia, repara tecidos e fortalece o sistema imune. Dormir bem = aprender melhor!" },
+      { emoji:"🧘", tag:"Saúde", text:"O que é saúde segundo a OMS (Organização Mundial da Saúde)?",
+        opts:["A) Ausência de doenças","B) Ter um corpo forte","C) Bem-estar físico, mental e social","D) Tomar remédios preventivos"], ans:2,
+        exp:"A OMS define saúde como 'completo bem-estar físico, mental e social'. Não é apenas não estar doente! Saúde inclui se sentir bem, ter relações positivas e qualidade de vida." },
+      { emoji:"🏃", tag:"Exercício", text:"Quantas horas de atividade física são recomendadas para crianças por DIA?",
+        opts:["A) 30 minutos","B) 1 hora","C) 2 horas","D) 3 horas"], ans:1,
+        exp:"A OMS recomenda pelo menos 60 minutos (1 hora) de atividade física por dia para crianças de 5-17 anos! Isso fortalece ossos, músculos, coração e melhora o humor." },
+    ]
+  }
+];
+
+let st={phase:0,qIdx:0,score:0,lives:3,streak:0,maxStreak:0,correct:0,wrong:0,timerInt:null,timeLeft:15};
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(){
+  st={phase:0,qIdx:0,score:0,lives:3,streak:0,maxStreak:0,correct:0,wrong:0,timerInt:null,timeLeft:15};
+  showScreen('game'); loadQ();
+}
+
+function loadQ(){
+  const ph=PHASES[st.phase], q=ph.qs[st.qIdx];
+  document.getElementById('phaseBadge').textContent=ph.badge;
+  document.getElementById('qEmoji').textContent=q.emoji;
+  document.getElementById('qTag').textContent=q.tag;
+  document.getElementById('qText').textContent=q.text;
+  document.getElementById('qSub').textContent='';
+
+  const col=document.getElementById('optsCol');
+  col.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.innerHTML=`<span class="opt-letter">${letters[i]}</span>${o.replace(/^[ABCD]\) /,'')}`;
+    btn.onclick=()=>pick(i,btn);
+    col.appendChild(btn);
+  });
+
+  const card=document.getElementById('qCard');
+  card.style.animation='none'; card.offsetHeight; card.style.animation='card-in .4s ease';
+  updateHUD(); startTimer(ph.time);
+}
+
+function updateHUD(){
+  document.getElementById('scoreD').textContent=st.score;
+  document.getElementById('livesD').textContent='❤'.repeat(st.lives)+'🖤'.repeat(3-st.lives);
+  document.getElementById('phaseD').textContent=`${st.phase+1}/3`;
+  document.getElementById('streakD').textContent=`🔥${st.streak}`;
+  const total=PHASES.reduce((a,p)=>a+p.qs.length,0);
+  const done=PHASES.slice(0,st.phase).reduce((a,p)=>a+p.qs.length,0)+st.qIdx;
+  document.getElementById('progFill').style.width=`${(done/total)*100}%`;
+}
+
+function startTimer(s){
+  clearInterval(st.timerInt); st.timeLeft=s; updateTimer(s,s);
+  st.timerInt=setInterval(()=>{
+    st.timeLeft--; updateTimer(st.timeLeft,s);
+    if(st.timeLeft<=0){clearInterval(st.timerInt);timeOut();}
+  },1000);
+}
+
+function updateTimer(t,max){
+  document.getElementById('tTxt').textContent=t;
+  const arc=document.getElementById('tArc');
+  arc.style.strokeDashoffset=138*(1-t/max);
+  arc.style.stroke=t<=3?'#EF4444':t<=6?'#F59E0B':'#22C55E';
+  document.getElementById('tTxt').style.color=t<=3?'#EF4444':'white';
+}
+
+function timeOut(){
+  const q=PHASES[st.phase].qs[st.qIdx];
+  st.lives--; st.streak=0; st.wrong++;
+  showFB(false,q,0,true);
+}
+
+function pick(idx,btn){
+  clearInterval(st.timerInt);
+  const q=PHASES[st.phase].qs[st.qIdx];
+  const correct=idx===q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.ans) b.classList.add('correct');
+    else if(i===idx&&!correct) b.classList.add('wrong');
+  });
+  let pts=0;
+  if(correct){
+    pts=10+st.timeLeft*2;
+    if(st.streak>=2) pts=Math.floor(pts*(1+st.streak*.2));
+    st.score+=pts; st.streak++; st.maxStreak=Math.max(st.maxStreak,st.streak); st.correct++;
+  } else { st.lives--; st.streak=0; st.wrong++; }
+  setTimeout(()=>showFB(correct,q,pts,false),400);
+}
+
+function showFB(correct,q,pts,timeout){
+  const fb=document.getElementById('feedback');
+  fb.classList.add('active');
+  document.getElementById('fbI').textContent=timeout?'⏰':correct?'🌿':'🥀';
+  document.getElementById('fbT').textContent=timeout?'Tempo Esgotado!':correct?'CORRETO!':'ERRADO!';
+  document.getElementById('fbT').className='fb-title '+(correct?'fb-correct':'fb-wrong');
+  document.getElementById('fbP').textContent=correct?`+${pts} pts! ${st.streak>1?'🔥×'+st.streak:''}`:`Resposta: ${q.opts[q.ans]}`;
+  document.getElementById('fbE').textContent=q.exp;
+  if(correct&&!timeout) setTimeout(()=>{ if(fb.classList.contains('active')) nextQ(); },2800);
+}
+
+function nextQ(){
+  document.getElementById('feedback').classList.remove('active');
+  if(st.lives<=0){showResults();return;}
+  st.qIdx++;
+  if(st.qIdx>=PHASES[st.phase].qs.length){
+    if(st.phase<PHASES.length-1) showPT();
+    else showResults();
+  } else loadQ();
+}
+
+function showPT(){
+  const pt=document.getElementById('phase-trans');
+  pt.classList.add('active');
+  const emojis=['🌱','🌿','🌳'];
+  document.getElementById('ptE').textContent=emojis[st.phase];
+  document.getElementById('ptT').textContent=`Fase ${st.phase+1} Completa!`;
+  document.getElementById('ptS').textContent='Próximo tema da natureza!';
+  document.getElementById('ptSc').textContent=`🌟 ${st.score} pontos`;
+  setTimeout(()=>{ pt.classList.remove('active'); st.phase++; st.qIdx=0; loadQ(); },2500);
+}
+
+function showResults(){
+  showScreen('results');
+  const pct=Math.round((st.correct/(st.correct+st.wrong||1))*100);
+  let title='Explorador da Natureza! 🌿';
+  if(pct<50) title='Cientista Iniciante! 📚';
+  else if(pct<70) title='Biólogo em Formação! ⭐';
+  else if(pct<90) title='Grande Naturalista! 🔬';
+  else title='MESTRE DAS CIÊNCIAS! 🏆';
+  document.getElementById('resT').textContent=title;
+  document.getElementById('resSc').textContent=st.score;
+  document.getElementById('resC').textContent=st.correct;
+  document.getElementById('resW').textContent=st.wrong;
+  document.getElementById('resMx').textContent=st.maxStreak;
+  localStorage.setItem('hs_ciencias',st.score);
+}
+
+// Falling leaves
+['🍃','🌿','🍀','🌱','🍂'].forEach((e,i)=>{
+  const l=document.createElement('div');
+  l.className='leaf'; l.textContent=e;
+  l.style.cssText=`left:${10+i*20}%;animation-delay:${i*1.6}s;animation-duration:${7+Math.random()*4}s;font-size:1.3rem`;
+  document.body.appendChild(l);
+});
+</script>
+</body>
+</html>
