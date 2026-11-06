@@ -117,9 +117,9 @@ button{font-family:inherit}
 
 /* ---------- STAGE 3: QUEBRA-CABEÇA ---------- */
 .pz-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
-.pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:min(90vw,420px);aspect-ratio:1;
+.pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:min(92vw,520px);aspect-ratio:1;
   background:rgba(0,0,0,.4);padding:4px;border-radius:14px;touch-action:manipulation}
-.tile{background-size:300% 300%;border-radius:6px;cursor:grab;position:relative;transition:transform .15s,box-shadow .15s;touch-action:none;user-select:none}
+.tile{background-size:300% 300%;border-radius:4px;cursor:grab;position:relative;transition:transform .15s,box-shadow .15s;touch-action:none;user-select:none}
 .tile.dragging{opacity:.25}
 .tile.over{box-shadow:0 0 0 4px #38BDF8 inset,0 0 18px #38BDF8;transform:scale(.95)}
 .tile-ghost{position:fixed;z-index:70;pointer-events:none;border-radius:8px;background-size:300% 300%;cursor:grabbing;
@@ -127,11 +127,38 @@ button{font-family:inherit}
 .tile:hover{transform:scale(.97)}
 .tile.picked{box-shadow:0 0 0 4px var(--gold) inset,0 0 18px var(--gold);transform:scale(.93)}
 .tile.placed{box-shadow:0 0 0 2px rgba(34,197,94,.7) inset}
-.tile .num{position:absolute;top:4px;left:6px;background:rgba(0,0,0,.55);border-radius:6px;padding:0 6px;font-size:.75rem;font-weight:800;display:none}
+.tile .num{position:absolute;top:2px;left:2px;background:rgba(0,0,0,.6);border-radius:5px;padding:0 4px;font-size:.62rem;font-weight:800;display:none}
 .show-nums .tile .num{display:block}
 .pz-side{display:flex;flex-direction:column;gap:10px;align-items:center;max-width:220px}
 .pz-preview{width:180px;height:180px;border-radius:12px;background-size:cover;border:3px solid var(--gold)}
 .pz-side p{font-size:.85rem;color:var(--muted);text-align:center}
+.pz-phase{background:#fff;color:#123a6b;border-radius:12px;padding:8px 12px;text-align:center;font-weight:800;width:100%}
+.pz-phase small{display:block;font-weight:600;font-size:.75rem;opacity:.75}
+.pz-phase .pips{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.pz-phase .pips i{width:22px;height:6px;border-radius:3px;background:#CBD5E1}
+.pz-phase .pips i.done{background:#16A34A}.pz-phase .pips i.now{background:#F59E0B}
+
+/* ---------- NÍVEIS ---------- */
+.levels{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:20px;max-width:760px;width:100%;text-align:center;animation:pop .35s ease}
+.levels h3{color:var(--gold);margin-bottom:14px;font-size:1.15rem}
+.level-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lvl{border:none;border-radius:16px;padding:16px 10px;cursor:pointer;color:#0B1F33;font-family:inherit;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.lvl:hover{transform:translateY(-4px) scale(1.03)}
+.lvl b{display:block;font-size:1.25rem;margin-bottom:6px}
+.lvl small{display:block;font-size:.8rem;line-height:1.4;font-weight:600;opacity:.85}
+.lvl.facil{background:#86EFAC}.lvl.medio{background:#FDE047}.lvl.dificil{background:#FCA5A5}
+.lv-tag{display:inline-block;padding:2px 10px;border-radius:8px;font-size:.75rem;font-weight:800;color:#0B1F33;margin-left:6px;vertical-align:middle}
+.lv-tag.facil{background:#86EFAC}.lv-tag.medio{background:#FDE047}.lv-tag.dificil{background:#FCA5A5}
+.hidden{display:none!important}
+@media (max-width:560px){.level-btns{grid-template-columns:1fr}}
+
+/* ---------- RESULTADO (modal e final) ---------- */
+.m-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 14px}
+.m-stats div{background:#fff;color:#123a6b;border-radius:12px;padding:8px 4px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.m-stats b{display:block;font-size:1.25rem;letter-spacing:0;text-transform:none}
+.pos-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:420px;width:100%;margin:14px auto 4px}
+.pos-cards div{background:#fff;color:#123a6b;border-radius:14px;padding:10px 6px;font-size:.75rem;font-weight:700}
+.pos-cards b{display:block;font-size:1.8rem;line-height:1.1}
 .moves{font-weight:800;color:var(--paper)}
 
 /* ---------- STAGE 4: TRAVESSIA ---------- */
@@ -211,12 +238,20 @@ button{font-family:inherit}
 <section class="screen" id="s1">
   <div class="hud"><span class="stage-name">🔎 Etapa 1 · Caça-palavras</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
   <p class="instr">Encontre as palavras escondidas! <b>Arraste</b> o dedo/mouse da primeira à última letra,
-    ou <b>toque na primeira e depois na última</b>. Elas podem estar na horizontal, vertical ou diagonal.</p>
-  <div class="ws-layout">
+    ou <b>toque na primeira e depois na última</b>. <span id="wsDirs"></span></p>
+  <div class="levels" id="lvS1">
+    <h3>🎯 Escolha o nível do caça-palavras</h3>
+    <div class="level-btns">
+      <button class="lvl facil" onclick="startWordSearch('facil')"><b>😊 Fácil</b><small>10 palavras · grade 12×12<br>só horizontal e vertical<br>10 pts por palavra</small></button>
+      <button class="lvl medio" onclick="startWordSearch('medio')"><b>🤔 Médio</b><small>14 palavras · grade 14×14<br>com diagonais<br>12 pts por palavra</small></button>
+      <button class="lvl dificil" onclick="startWordSearch('dificil')"><b>🔥 Difícil</b><small>18 palavras · grade 16×16<br>até de trás para frente!<br>15 pts por palavra</small></button>
+    </div>
+  </div>
+  <div class="ws-layout hidden">
     <div class="ws-gridbox"><div class="ws-grid" id="wsGrid"></div></div>
     <div class="ws-list">
       <div class="ws-list-head">
-        <h3>📋 Palavras encontradas: <span id="wsCount">0</span>/<span id="wsTotal">0</span></h3>
+        <h3>📋 Palavras encontradas: <span id="wsCount">0</span>/<span id="wsTotal">0</span><span class="lv-tag" id="wsLv"></span></h3>
         <button class="btn-sec" onclick="wsHint()">💡 Dica (−5)</button>
       </div>
       <div class="ws-words" id="wsWords"></div>
@@ -238,10 +273,20 @@ button{font-family:inherit}
 <!-- ============ STAGE 3 ============ -->
 <section class="screen" id="s3">
   <div class="hud"><span class="stage-name">🧩 Etapa 3 · Quebra-cabeça</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
-  <p class="instr">Uma tempestade embaralhou o mapa da chegada! <b>Clique na peça e arraste</b> até o lugar certo para trocá-las. Também dá para tocar em uma peça e depois em outra.</p>
-  <div class="pz-wrap">
+  <p class="instr">Uma tempestade embaralhou as pinturas do diário de bordo! São <b>3 fases</b>, cada uma com mais peças.
+    <b>Clique na peça e arraste</b> até o lugar certo para trocá-las. Também dá para tocar em uma peça e depois em outra.</p>
+  <div class="levels" id="lvS3">
+    <h3>🎯 Escolha o nível do quebra-cabeça</h3>
+    <div class="level-btns">
+      <button class="lvl facil" onclick="startPuzzle('facil')"><b>😊 Fácil</b><small>Fase 1: 9 peças<br>Fase 2: 16 peças<br>Fase 3: 25 peças</small></button>
+      <button class="lvl medio" onclick="startPuzzle('medio')"><b>🤔 Médio</b><small>Fase 1: 16 peças<br>Fase 2: 25 peças<br>Fase 3: 36 peças</small></button>
+      <button class="lvl dificil" onclick="startPuzzle('dificil')"><b>🔥 Difícil</b><small>Fase 1: 25 peças<br>Fase 2: 36 peças<br>Fase 3: 49 peças</small></button>
+    </div>
+  </div>
+  <div class="pz-wrap hidden">
     <div class="pz-board" id="pzBoard"></div>
     <div class="pz-side">
+      <div class="pz-phase" id="pzPhase"></div>
       <div class="pz-preview" id="pzPreview"></div>
       <p>Imagem modelo</p>
       <div class="moves">🔄 Trocas: <span id="pzMoves">0</span></div>
@@ -310,6 +355,7 @@ button{font-family:inherit}
   <p class="intro-sub">Você chegou com a esquadra de Cabral em 22 de abril de 1500! Parabéns, navegador(a)!</p>
   <div class="stars" id="finalStars"></div>
   <div class="final-score" id="finalScore"></div>
+  <div class="pos-cards" id="posCards"></div>
   <div class="record" id="finalRecord"></div>
   <div class="breakdown" id="breakdown"></div>
   <div class="rank final-rank" id="rankFinal"></div>
@@ -326,6 +372,7 @@ button{font-family:inherit}
     <div class="big" id="mIcon">🏆</div>
     <h2 id="mTitle">Etapa concluída!</h2>
     <div class="got" id="mPts"></div>
+    <div class="m-stats" id="mStats"></div>
     <div class="did" id="mFact"></div>
     <button class="btn-main" id="mBtn">Próxima etapa ➜</button>
   </div>
@@ -367,7 +414,7 @@ function confetti(n = 30) {
 
 /* ================= STATE ================= */
 const GAME_ID = 'descobrimento';
-const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0, timer: null, player: null, rankTab: 'turma' };
+const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0, timer: null, player: null, rankTab: 'turma', levels: {}, max: 0 };
 
 /* ---------- Cadastro: escola, nome e turma ---------- */
 function initSignup() {
@@ -455,23 +502,39 @@ function startGame() {
   show('s1');
 }
 
-function stageComplete(icon, title, fact) {
+/* posição que o aluno teria no ranking da turma com a pontuação atual */
+function rankPosition(score, filtro) {
+  return Lian.Ranking.top(GAME_ID, filtro, 9999).filter(e => e.pontos > score).length + 1;
+}
+function showModal({ icon, title, pts, timeLabel, time, fact, btn, onNext }) {
   good(); confetti();
+  const p = state.player;
   $('mIcon').textContent = icon;
   $('mTitle').textContent = title;
-  $('mPts').textContent = `+${state.stageScores[state.stage]} pontos`;
+  $('mPts').textContent = `+${pts} pontos`;
+  $('mStats').innerHTML = `
+    <div>⭐ Pontos<b>${state.score}</b></div>
+    <div>⏱ ${timeLabel}<b>${fmt(time)}</b></div>
+    <div>🏆 Na turma<b>${rankPosition(state.score, { escola: p.escola, turma: p.turma })}º</b></div>`;
   $('mFact').innerHTML = '💡 <b>Você sabia?</b> ' + fact;
-  $('mBtn').textContent = state.stage < 3 ? 'Próxima etapa ➜' : 'Ver resultado 🏆';
-  $('mBtn').onclick = () => {
-    $('modal').classList.remove('show');
+  $('mBtn').textContent = btn;
+  $('mBtn').onclick = () => { $('modal').classList.remove('show'); onNext(); };
+  setTimeout(() => $('modal').classList.add('show'), 500);
+}
+function stageComplete(icon, title, fact) {
+  tick();
+  showModal({ icon, title, fact, pts: state.stageScores[state.stage], timeLabel: 'Tempo', time: state.elapsed,
+    btn: state.stage < 3 ? 'Próxima etapa ➜' : 'Ver resultado 🏆', onNext: nextStage });
+}
+function nextStage() {
+  {
     state.stage++;
     updateHud();
     if (state.stage === 1) { initBlanks(); show('s2'); }
     else if (state.stage === 2) { initPuzzle(); show('s3'); }
     else if (state.stage === 3) { initVoyage(); show('s4'); }
     else finish();
-  };
-  setTimeout(() => $('modal').classList.add('show'), 500);
+  }
 }
 
 /* ================= ETAPA 1: CAÇA-PALAVRAS ================= */
@@ -495,13 +558,20 @@ const WORDS = [
   { w: 'OCEANO',      d: 'Atlântico, o mar que cruzaram' },
   { w: 'MARUJO',      d: 'Marinheiro do navio' },
 ];
-const N = 14;
+const WS_LEVELS = {
+  facil:   { N: 12, count: 10, ppw: 10, dirs: [[0, 1], [1, 0]], txt: 'As palavras estão na horizontal (→) ou na vertical (↓).' },
+  medio:   { N: 14, count: 14, ppw: 12, dirs: [[0, 1], [1, 0], [1, 1], [-1, 1]], txt: 'Elas podem estar na horizontal, vertical ou diagonal.' },
+  dificil: { N: 16, count: 18, ppw: 15, dirs: [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1]],
+             txt: 'Elas podem estar em qualquer direção, até de trás para frente!' },
+};
+const LV_NAME = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
+let N = 14, WS_WORDS = WORDS, WS_LV = WS_LEVELS.medio;
 const COLORS = ['#EF4444','#F97316','#CA8A04','#16A34A','#0D9488','#0284C7','#4F46E5','#9333EA','#DB2777','#65A30D'];
 let ws = null;
 
 function buildGrid() {
-  const dirs = [[0, 1], [1, 0], [1, 1], [-1, 1]];
-  const sorted = [...WORDS].sort((a, b) => b.w.length - a.w.length);
+  const dirs = WS_LV.dirs;
+  const sorted = [...WS_WORDS].sort((a, b) => b.w.length - a.w.length);
   for (let attempt = 0; attempt < 500; attempt++) {
     const g = Array.from({ length: N }, () => Array(N).fill(''));
     const placed = {};
@@ -534,6 +604,20 @@ function buildGrid() {
 }
 
 function initWordSearch() {
+  // mostra a escolha de nível
+  $('lvS1').classList.remove('hidden');
+  document.querySelector('#s1 .ws-layout').classList.add('hidden');
+  $('wsDirs').textContent = '';
+}
+function startWordSearch(lv) {
+  WS_LV = WS_LEVELS[lv]; N = WS_LV.N; WS_WORDS = WORDS.slice(0, WS_LV.count);
+  state.levels.ws = lv;
+  state.max += WS_WORDS.length * WS_LV.ppw;
+  $('lvS1').classList.add('hidden');
+  document.querySelector('#s1 .ws-layout').classList.remove('hidden');
+  $('wsDirs').textContent = WS_LV.txt;
+  $('wsLv').textContent = LV_NAME[lv]; $('wsLv').className = 'lv-tag ' + lv;
+  beep(600, .08);
   const { g, placed } = buildGrid();
   ws = { g, placed, found: new Set(), start: null, tapStart: null, dragging: false, cells: [] };
   const grid = $('wsGrid');
@@ -547,9 +631,9 @@ function initWordSearch() {
     grid.appendChild(d);
     ws.cells.push(d);
   }
-  $('wsTotal').textContent = WORDS.length;
+  $('wsTotal').textContent = WS_WORDS.length;
   $('wsCount').textContent = 0;
-  $('wsWords').innerHTML = WORDS.map(({ w, d }) =>
+  $('wsWords').innerHTML = WS_WORDS.map(({ w, d }) =>
     `<div class="ws-word" id="ww-${w}"><b>${w}</b><small>${d}</small></div>`).join('');
 
   grid.onpointerdown = e => {
@@ -612,22 +696,22 @@ function evaluate(a, b) {
   if (!cells) return;
   const str = cells.map(p => ws.g[p.r][p.c]).join('');
   const rev = [...str].reverse().join('');
-  const hit = WORDS.find(({ w }) => !ws.found.has(w) && (w === str || w === rev));
+  const hit = WS_WORDS.find(({ w }) => !ws.found.has(w) && (w === str || w === rev));
   if (!hit) { if (cells.length > 2) bad(); return; }
   ws.found.add(hit.w);
   const color = COLORS[WORDS.indexOf(hit) % COLORS.length];
   cells.forEach(p => { const el = cellAt(p); el.classList.add('found'); el.style.background = color; });
   $('ww-' + hit.w).classList.add('found');
   $('wsCount').textContent = ws.found.size;
-  addPoints(10);
+  addPoints(WS_LV.ppw);
   good();
-  if (ws.found.size === WORDS.length) {
+  if (ws.found.size === WS_WORDS.length) {
     stageComplete('🔎', 'Caça-palavras completo!',
       'A esquadra de Cabral tinha <b>13 embarcações</b> e cerca de <b>1.500 homens</b>. Era a maior frota que Portugal já tinha enviado ao mar!');
   }
 }
 function wsHint() {
-  const left = WORDS.filter(({ w }) => !ws.found.has(w));
+  const left = WS_WORDS.filter(({ w }) => !ws.found.has(w));
   if (!left.length) return;
   const { w } = left[rand(left.length)];
   const { r0, c0 } = ws.placed[w];
@@ -731,7 +815,8 @@ function checkBlanks() {
 }
 
 /* ================= ETAPA 3: QUEBRA-CABEÇA ================= */
-const PUZZLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+const PUZZLE_IMAGES = [
+ { title: 'A chegada ao Monte Pascoal', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
 <defs>
  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#FDE68A"/></linearGradient>
  <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0EA5E9"/><stop offset="1" stop-color="#1E3A8A"/></linearGradient>
@@ -764,26 +849,103 @@ const PUZZLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300
 <line x1="160" y1="238" x2="286" y2="238" stroke="#FBBF24" stroke-width="3"/>
 <g fill="#451A03"><circle cx="190" cy="250" r="3"/><circle cx="215" cy="250" r="3"/><circle cx="240" cy="250" r="3"/><circle cx="265" cy="250" r="3"/></g>
 <g font-size="20"><text x="30" y="240">🐟</text><text x="250" y="110">🦜</text></g>
-</svg>`;
-const PUZZLE_URL = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(PUZZLE_SVG) + '")';
+</svg>`,
+   fact: 'Em 22 de abril de 1500 os portugueses avistaram o <b>Monte Pascoal</b>, na atual Bahia. Recebeu esse nome porque era a semana da <b>Páscoa</b>.' },
+ { title: 'O encontro na praia', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<defs>
+ <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FB923C"/><stop offset=".6" stop-color="#FDE68A"/></linearGradient>
+ <linearGradient id="sea2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#0369A1"/></linearGradient>
+</defs>
+<rect width="300" height="300" fill="url(#dawn)"/>
+<circle cx="150" cy="150" r="42" fill="#FEF08A"/><circle cx="150" cy="150" r="58" fill="#FEF08A" opacity=".3"/>
+<g fill="#FFF7ED" opacity=".9"><ellipse cx="60" cy="50" rx="34" ry="10"/><ellipse cx="240" cy="70" rx="28" ry="9"/></g>
+<rect y="150" width="300" height="50" fill="url(#sea2)"/>
+<g transform="translate(205 118) scale(.32)"><line x1="45" y1="5" x2="45" y2="80" stroke="#451A03" stroke-width="5"/><path d="M22 15 Q45 9 68 15 L65 60 Q45 56 25 60 Z" fill="#FFFBEB"/><rect x="41" y="22" width="8" height="30" fill="#DC2626"/><rect x="31" y="33" width="28" height="8" fill="#DC2626"/><path d="M0 78 L100 78 Q92 98 75 100 L20 100 Q6 95 0 78 Z" fill="#92400E"/></g>
+<g stroke="#E0F2FE" stroke-width="2" fill="none" opacity=".8"><path d="M20 170 q8 -5 16 0 q8 5 16 0"/><path d="M110 185 q8 -5 16 0 q8 5 16 0"/><path d="M230 175 q8 -5 16 0 q8 5 16 0"/></g>
+<path d="M0 196 Q80 186 150 194 Q220 202 300 192 L300 300 L0 300 Z" fill="#FCD34D"/>
+<path d="M0 200 Q80 190 150 198 Q220 206 300 196" stroke="#FFFBEB" stroke-width="4" fill="none"/>
+<path d="M14 270 Q60 170 112 270 Z" fill="#A16207" stroke="#713F12" stroke-width="3"/>
+<g stroke="#713F12" stroke-width="2"><path d="M30 262 Q60 196 96 262"/><path d="M44 266 Q62 216 82 266"/></g>
+<path d="M54 270 Q63 244 72 270 Z" fill="#422006"/>
+<g transform="translate(150 250)"><path d="M-10 8 L10 8 M-8 12 L8 4" stroke="#78350F" stroke-width="4"/><path d="M0 -26 Q14 -8 6 4 Q0 10 -6 4 Q-14 -8 0 -26 Z" fill="#F97316"/><path d="M0 -14 Q6 -4 2 4 Q-4 6 -4 0 Q-4 -8 0 -14 Z" fill="#FDE047"/></g>
+<path d="M190 268 Q240 284 288 266 Q282 278 240 280 Q204 280 190 268 Z" fill="#7C2D12" stroke="#431407" stroke-width="2"/>
+<line x1="226" y1="246" x2="262" y2="282" stroke="#78350F" stroke-width="4"/><ellipse cx="262" cy="282" rx="7" ry="4" fill="#78350F"/>
+<g><path d="M268 196 q-6 -50 4 -86" stroke="#78350F" stroke-width="6" fill="none"/>
+ <path d="M272 110 q-24 -6 -36 10 M272 110 q22 -10 30 6 M272 110 q-10 -22 -28 -22 M272 110 q12 -20 30 -14" stroke="#15803D" stroke-width="7" fill="none" stroke-linecap="round"/></g>
+<g fill="#B45309" opacity=".55"><ellipse cx="120" cy="236" rx="4" ry="7"/><ellipse cx="132" cy="250" rx="4" ry="7"/><ellipse cx="118" cy="264" rx="4" ry="7"/><ellipse cx="130" cy="280" rx="4" ry="7"/></g>
+<g font-size="22"><text x="196" y="236">🦜</text><text x="20" y="120">🦜</text><text x="160" y="292">🐚</text></g>
+<rect x="70" y="22" width="160" height="26" rx="6" fill="#7C2D12"/><text x="150" y="40" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="13" fill="#FEF3C7">Terra de Vera Cruz</text>
+</svg>`,
+   fact: 'Os primeiros indígenas que os portugueses encontraram foram os <b>Tupiniquins</b>. Eles moravam em <b>ocas</b>, pescavam, caçavam e navegavam em <b>canoas</b>.' },
+ { title: 'A esquadra no mar', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<defs>
+ <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E1B4B"/><stop offset=".55" stop-color="#7C3AED"/><stop offset="1" stop-color="#F472B6"/></linearGradient>
+ <linearGradient id="sea3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D4ED8"/><stop offset="1" stop-color="#0F172A"/></linearGradient>
+ <g id="ship"><line x1="45" y1="5" x2="45" y2="80" stroke="#451A03" stroke-width="3"/>
+  <path d="M22 15 Q45 9 68 15 L65 60 Q45 56 25 60 Z" fill="#FFFBEB" stroke="#78350F" stroke-width="2"/>
+  <rect x="41" y="22" width="8" height="30" fill="#DC2626"/><rect x="31" y="33" width="28" height="8" fill="#DC2626"/>
+  <line x1="72" y1="25" x2="72" y2="80" stroke="#451A03" stroke-width="2"/>
+  <path d="M72 30 L96 76 L72 76 Z" fill="#FFFBEB" stroke="#78350F" stroke-width="2"/>
+  <path d="M0 78 L100 78 Q92 98 75 100 L20 100 Q6 95 0 78 Z" fill="#92400E" stroke="#451A03" stroke-width="2"/>
+  <path d="M42 4 l12 5 l-12 5 Z" fill="#DC2626"/></g>
+</defs>
+<rect width="300" height="300" fill="url(#dusk)"/>
+<g fill="#FFFFFF"><circle cx="30" cy="20" r="1.5"/><circle cx="90" cy="40" r="1.2"/><circle cx="140" cy="18" r="1.8"/><circle cx="200" cy="34" r="1.2"/><circle cx="260" cy="16" r="1.6"/><circle cx="170" cy="60" r="1"/><circle cx="110" cy="80" r="1.2"/><circle cx="280" cy="70" r="1"/><circle cx="20" cy="90" r="1"/></g>
+<g fill="#FDE68A"><path d="M150 50 l3 8 l8 0 l-6 5 l2 8 l-7 -5 l-7 5 l2 -8 l-6 -5 l8 0 Z"/></g>
+<circle cx="245" cy="65" r="22" fill="#FEF9C3"/><circle cx="255" cy="58" r="20" fill="#5B21B6" opacity=".9"/>
+<rect y="175" width="300" height="125" fill="url(#sea3)"/>
+<use href="#ship" transform="translate(18 120) scale(.6)"/>
+<use href="#ship" transform="translate(95 105) scale(.95)"/>
+<use href="#ship" transform="translate(205 128) scale(.55)"/>
+<g stroke="#93C5FD" stroke-width="2" fill="none" opacity=".7"><path d="M10 200 q10 -6 20 0 q10 6 20 0"/><path d="M120 214 q10 -6 20 0 q10 6 20 0"/><path d="M220 196 q10 -6 20 0 q10 6 20 0"/><path d="M150 290 q10 -6 20 0 q10 6 20 0"/></g>
+<g transform="translate(60 258)"><path d="M-30 6 Q0 -18 30 6 Q20 4 12 10 Q0 2 -12 10 Q-20 4 -30 6 Z" fill="#475569"/><path d="M28 2 l12 -12 l-2 14 Z" fill="#475569"/><circle cx="-18" cy="0" r="2" fill="#fff"/></g>
+<g transform="translate(240 245)"><circle r="40" fill="#FEF3C7" stroke="#92400E" stroke-width="3"/><circle r="30" fill="none" stroke="#B45309" stroke-width="1.5"/>
+ <path d="M0 -36 L7 0 L0 36 L-7 0 Z" fill="#B91C1C"/><path d="M-36 0 L0 -7 L36 0 L0 7 Z" fill="#1E3A8A"/><circle r="4" fill="#FBBF24"/>
+ <text y="-26" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="10" fill="#7F1D1D" dy="-12">N</text></g>
+<text x="16" y="290" font-family="Georgia,serif" font-weight="bold" font-size="20" fill="#FDE68A">1500</text>
+</svg>`,
+   fact: 'Para não se perderem no oceano, os navegadores usavam a <b>bússola</b> e observavam as <b>estrelas</b>. A esquadra de Cabral tinha <b>13 navios</b>!' },
+];
+PUZZLE_IMAGES.forEach(im => im.url = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(im.svg) + '")');
+const PZ_LEVELS = { facil: [3, 4, 5], medio: [4, 5, 6], dificil: [5, 6, 7] };
 let pz = null;
 
 function initPuzzle() {
+  $('lvS3').classList.remove('hidden');
+  document.querySelector('#s3 .pz-wrap').classList.add('hidden');
+}
+function startPuzzle(lv) {
+  state.levels.pz = lv;
+  state.max += PZ_LEVELS[lv].reduce((t, n) => t + n * n * 4, 0);
+  $('lvS3').classList.add('hidden');
+  document.querySelector('#s3 .pz-wrap').classList.remove('hidden');
+  beep(600, .08);
+  startPhase(lv, 0);
+}
+function startPhase(lv, phase) {
+  const n = PZ_LEVELS[lv][phase], total = n * n;
   let perm;
-  do { perm = shuffle([0,1,2,3,4,5,6,7,8]); } while (perm.filter((v, i) => v === i).length > 2);
-  pz = { perm, picked: null, moves: 0, done: false };
-  $('pzPreview').style.backgroundImage = PUZZLE_URL;
+  const maxFixed = Math.max(1, Math.floor(total * .1));
+  do { perm = shuffle([...Array(total).keys()]); } while (perm.filter((v, i) => v === i).length > maxFixed);
+  pz = { lv, phase, n, perm, picked: null, moves: 0, done: false, t0: Date.now(), img: PUZZLE_IMAGES[phase] };
+  $('pzPreview').style.backgroundImage = pz.img.url;
   $('pzMoves').textContent = 0;
+  $('pzBoard').style.gridTemplateColumns = `repeat(${n},1fr)`;
+  $('pzPhase').innerHTML = `Fase ${phase + 1} de 3 <span class="lv-tag ${lv}">${LV_NAME[lv]}</span>
+    <small>${pz.img.title} · ${total} peças</small>
+    <div class="pips">${[0, 1, 2].map(i => `<i class="${i < phase ? 'done' : i === phase ? 'now' : ''}"></i>`).join('')}</div>`;
   renderPuzzle();
+  window.scrollTo(0, 0);
 }
 function renderPuzzle() {
-  const b = $('pzBoard');
+  const b = $('pzBoard'), n = pz.n;
   b.innerHTML = '';
   pz.perm.forEach((piece, slot) => {
     const t = document.createElement('div');
     t.className = 'tile' + (piece === slot ? ' placed' : '') + (pz.picked === slot ? ' picked' : '');
-    t.style.backgroundImage = PUZZLE_URL;
-    t.style.backgroundPosition = `${(piece % 3) * 50}% ${Math.floor(piece / 3) * 50}%`;
+    t.style.backgroundImage = pz.img.url;
+    t.style.backgroundSize = `${n * 100}% ${n * 100}%`;
+    t.style.backgroundPosition = `${(piece % n) / (n - 1) * 100}% ${Math.floor(piece / n) / (n - 1) * 100}%`;
     t.innerHTML = `<span class="num">${piece + 1}</span>`;
     t.dataset.slot = slot;
     t.onpointerdown = e => dragStart(e, t, slot);
@@ -801,7 +963,7 @@ function dragStart(e, tile, slot) {
     if (!d.ghost) {
       d.ghost = document.createElement('div');
       d.ghost.className = 'tile-ghost';
-      d.ghost.style.cssText += `width:${r.width}px;height:${r.height}px;background-image:${tile.style.backgroundImage};background-position:${tile.style.backgroundPosition}`;
+      d.ghost.style.cssText += `width:${r.width}px;height:${r.height}px;background-image:${tile.style.backgroundImage};background-position:${tile.style.backgroundPosition};background-size:${tile.style.backgroundSize}`;
       document.body.appendChild(d.ghost);
       tile.classList.add('dragging');
       pz.picked = null;
@@ -844,9 +1006,18 @@ function swapTiles(a, slot) {
   renderPuzzle();
   if (pz.perm.every((v, i) => v === i)) {
     pz.done = true;
-    addPoints(Math.max(50, 150 - Math.max(0, pz.moves - 8) * 5));
-    stageComplete('🧩', 'Imagem montada!',
-      'Em 22 de abril de 1500 os portugueses avistaram o <b>Monte Pascoal</b>, na atual Bahia. Recebeu esse nome porque era a semana da <b>Páscoa</b>.');
+    const total = pz.n * pz.n;
+    const pts = Math.max(total * 2, total * 4 - Math.max(0, pz.moves - total) * 2);
+    addPoints(pts);
+    tick();
+    const phaseTime = Math.round((Date.now() - pz.t0) / 1000);
+    const { lv, phase, img } = pz;
+    if (phase < 2) {
+      showModal({ icon: '🧩', title: `Fase ${phase + 1} completa!`, pts, timeLabel: 'Tempo da fase', time: phaseTime,
+        fact: img.fact, btn: `Fase ${phase + 2}: ${PZ_LEVELS[lv][phase + 1] ** 2} peças ➜`, onNext: () => startPhase(lv, phase + 1) });
+    } else {
+      stageComplete('🧩', 'Quebra-cabeças completos!', img.fact);
+    }
   }
 }
 
@@ -942,7 +1113,7 @@ function finish() {
   tick();
   const bonus = Math.max(0, 150 - Math.floor(state.elapsed / 6));   // quanto mais rápido, mais pontos
   state.score += bonus;
-  const MAX = WORDS.length * 10 + 9 * 10 + 150 + QUESTIONS.length * 15 + 150;
+  const MAX = state.max + 9 * 10 + QUESTIONS.length * 15 + 150;
   const pct = state.score / MAX;
   const stars = pct >= .85 ? 3 : pct >= .6 ? 2 : 1;
   $('finalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
@@ -950,11 +1121,18 @@ function finish() {
   $('final').querySelector('.intro-sub').textContent =
     `Parabéns, ${state.player.nome}! Você chegou com a esquadra de Cabral em 22 de abril de 1500.`;
   const names = ['🔎 Caça-palavras', '✏️ Lacunas', '🧩 Quebra-cabeça', '🧭 Travessia'];
-  $('breakdown').innerHTML = names.map((n, i) => `<div>${n}<b>${state.stageScores[i]}</b></div>`).join('') +
+  const lvOf = i => i === 0 ? ` (${LV_NAME[state.levels.ws]})` : i === 2 ? ` (${LV_NAME[state.levels.pz]})` : '';
+  $('breakdown').innerHTML = names.map((n, i) => `<div>${n}${lvOf(i)}<b>${state.stageScores[i]}</b></div>`).join('') +
     `<div>⏱ Tempo total<b>${fmt(state.elapsed)}</b></div><div>⚡ Bônus de rapidez<b>+${bonus}</b></div>`;
   const { id, posicao } = Lian.Ranking.add(GAME_ID, { ...state.player, pontos: state.score, tempo: state.elapsed });
   state.rankTab = 'turma';
   renderRanking('rankFinal', id);
+  const all = Lian.Ranking.all(GAME_ID), p = state.player;
+  const posIn = f => all.filter(e => Object.keys(f).every(k => e[k] === f[k])).findIndex(e => e.id === id) + 1;
+  $('posCards').innerHTML = `
+    <div>🏆 Na turma<b>${posIn({ escola: p.escola, turma: p.turma })}º</b></div>
+    <div>🏫 Na escola<b>${posIn({ escola: p.escola })}º</b></div>
+    <div>🌎 Geral<b>${posicao}º</b></div>`;
   try {
     const prev = +(localStorage.getItem('hs_descobrimento') || 0);
     if (state.score > prev) {
