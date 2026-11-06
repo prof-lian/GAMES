@@ -33,20 +33,90 @@
     set(p) { store.set('lian_player', p); renderPlayer(); },
   };
 
-  /* ---------- Ranking (salvo neste navegador) ---------- */
+  /* ---------- Ranking online (Firebase Firestore, projeto "games") ---------- */
+  const FIREBASE = { projectId: 'games-4efa7', apiKey: 'AIzaSyC_zod0fusdZj3LbgTmKKOc9ndAiSCbDg4' };
+  const DB = `projects/${FIREBASE.projectId}/databases/(default)/documents`;
+  const API = `https://firestore.googleapis.com/v1/${DB}`;
+
+  const enc = v => typeof v === 'string' ? { stringValue: v }
+    : Number.isInteger(v) ? { integerValue: String(v) }
+    : typeof v === 'number' ? { doubleValue: v }
+    : v && typeof v === 'object' ? { mapValue: { fields: encFields(v) } }
+    : { nullValue: null };
+  const encFields = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined).map(([k, v]) => [k, enc(v)]));
+  const dec = v => 'stringValue' in v ? v.stringValue
+    : 'integerValue' in v ? Number(v.integerValue)
+    : 'doubleValue' in v ? v.doubleValue
+    : 'timestampValue' in v ? Date.parse(v.timestampValue)
+    : 'mapValue' in v ? decFields(v.mapValue.fields || {})
+    : null;
+  const decFields = f => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, dec(v)]));
+
+  async function call(path, body) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 8000);
+    try {
+      const r = await fetch(`${API}${path}?key=${FIREBASE.apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal,
+      });
+      const json = await r.json().catch(() => ({}));
+      const err = Array.isArray(json) ? (json.find(x => x && x.error) || {}).error : json.error;
+      if (!r.ok || err) throw Object.assign(new Error((err && err.message) || r.status), { status: err && err.status });
+      return json;
+    } finally { clearTimeout(t); }
+  }
+
+  const Cloud = {
+    async add(id, game, e) {
+      const fields = encFields({ jogo: game, nome: e.nome, escola: e.escola, turma: e.turma, pontos: e.pontos, tempo: e.tempo, niveis: e.niveis });
+      await call(':commit', { writes: [{
+        update: { name: `${DB}/ranking/${id}`, fields },
+        updateTransforms: [{ fieldPath: 'data', setToServerValue: 'REQUEST_TIME' }],
+        currentDocument: { exists: false },
+      }] });
+    },
+    async list(game) {
+      const q = ordered => ({ structuredQuery: {
+        from: [{ collectionId: 'ranking' }],
+        where: { fieldFilter: { field: { fieldPath: 'jogo' }, op: 'EQUAL', value: { stringValue: game } } },
+        ...(ordered ? { orderBy: [{ field: { fieldPath: 'pontos' }, direction: 'DESCENDING' }] } : {}),
+        limit: ordered ? 500 : 1000,
+      } });
+      let rows;
+      try { rows = await call(':runQuery', q(true)); }
+      catch (err) {                                   // índice ainda não criado: busca sem ordenar
+        if (err.status !== 'FAILED_PRECONDITION') throw err;
+        rows = await call(':runQuery', q(false));
+      }
+      return rows.filter(r => r.document).map(r => ({ ...decFields(r.document.fields || {}), id: r.document.name.split('/').pop() }));
+    },
+  };
+
+  /* ---------- Ranking: online quando der, e sempre uma cópia neste navegador ---------- */
+  const sortRank = list => list.sort((a, b) => b.pontos - a.pontos || a.tempo - b.tempo);
+  const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(20)),
+    b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[b % 62]).join('');
   const Ranking = {
     all: game => store.get('lian_rank_' + game, []),
-    add(game, entry) {
-      const list = Ranking.all(game);
-      const id = Date.now() + '-' + Math.random().toString(36).slice(2, 7);
-      list.push({ ...entry, id, data: Date.now() });
-      list.sort((a, b) => b.pontos - a.pontos || a.tempo - b.tempo);
-      store.set('lian_rank_' + game, list.slice(0, 200));
-      return { id, posicao: list.findIndex(e => e.id === id) + 1 };
+    /** Lista do ranking: { online: true/false, list: [...] } */
+    async load(game) {
+      try { return { online: true, list: sortRank(await Cloud.list(game)) }; }
+      catch (e) { console.warn('Ranking online indisponível:', e.message); return { online: false, list: Ranking.all(game) }; }
     },
-    top(game, filtro, n = 10) {
-      return Ranking.all(game).filter(e => !filtro || Object.keys(filtro).every(k => e[k] === filtro[k])).slice(0, n);
+    /** Salva o resultado; devolve { id, online, list } */
+    async add(game, entry) {
+      const id = newId();
+      const local = Ranking.all(game);
+      local.push({ ...entry, id, data: Date.now() });
+      store.set('lian_rank_' + game, sortRank(local).slice(0, 200));
+      try {
+        await Cloud.add(id, game, entry);
+        const r = await Ranking.load(game);
+        if (r.online) return { id, ...r };
+      } catch (e) { console.warn('Não foi possível salvar online:', e.message); }
+      return { id, online: false, list: Ranking.all(game) };
     },
+    filter: (list, filtro) => list.filter(e => !filtro || Object.keys(filtro).every(k => e[k] === filtro[k])),
   };
 
   /* ---------- Cabeçalho ---------- */

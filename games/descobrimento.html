@@ -414,7 +414,8 @@ function confetti(n = 30) {
 
 /* ================= STATE ================= */
 const GAME_ID = 'descobrimento';
-const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0, timer: null, player: null, rankTab: 'turma', levels: {}, max: 0 };
+const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0, timer: null, player: null, rankTab: 'turma', levels: {}, max: 0,
+                rank: { online: false, loading: true, list: [] } };
 
 /* ---------- Cadastro: escola, nome e turma ---------- */
 function initSignup() {
@@ -447,7 +448,7 @@ function renderRanking(boxId, highlightId) {
   const p = state.player, box = $(boxId);
   if (!box || !p) return;
   const filtros = { turma: { escola: p.escola, turma: p.turma }, escola: { escola: p.escola }, geral: null };
-  const list = Lian.Ranking.top(GAME_ID, filtros[state.rankTab], 10);
+  const list = Lian.Ranking.filter(state.rank.list, filtros[state.rankTab]).slice(0, 10);
   const medal = i => ['🥇','🥈','🥉'][i] || (i + 1) + 'º';
   box.innerHTML = `
     <h3>🏆 Ranking</h3>
@@ -463,7 +464,7 @@ function renderRanking(boxId, highlightId) {
       </li>`).join('')}</ol>`
       : '<div class="empty">Ninguém jogou ainda.<br>Seja o primeiro! 🚀</div>'}
     ${boxId === 'rankS1' ? `<div class="now">Você agora: ⭐ <span class="pts">${state.score}</span> · ⏱ <span class="clock">${fmt(state.elapsed)}</span></div>` : ''}
-    <div class="rank-note">Ranking salvo neste computador</div>`;
+    <div class="rank-note">${state.rank.loading ? '⏳ Carregando ranking…' : state.rank.online ? '🌐 Ranking online · todos os computadores' : '💾 Sem internet: ranking deste computador'}</div>`;
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { state.rankTab = b.dataset.tab; renderRanking(boxId, highlightId); });
 }
 const STAGES = ['s1', 's2', 's3', 's4'];
@@ -497,14 +498,17 @@ function startGame() {
   state.t0 = Date.now();
   state.timer = setInterval(tick, 1000);
   updateHud();
+  state.rank = { online: false, loading: true, list: Lian.Ranking.all(GAME_ID) };
   renderRanking('rankS1');
+  Lian.Ranking.load(GAME_ID).then(r => { state.rank = r; renderRanking('rankS1'); });
   initWordSearch();
   show('s1');
 }
 
 /* posição que o aluno teria no ranking da turma com a pontuação atual */
-function rankPosition(score, filtro) {
-  return Lian.Ranking.top(GAME_ID, filtro, 9999).filter(e => e.pontos > score).length + 1;
+function rankPosition(score, filtro, tempo = Infinity, selfId = null) {
+  return Lian.Ranking.filter(state.rank.list, filtro)
+    .filter(e => e.id !== selfId && (e.pontos > score || (e.pontos === score && e.tempo < tempo))).length + 1;
 }
 function showModal({ icon, title, pts, timeLabel, time, fact, btn, onNext }) {
   good(); confetti();
@@ -1124,26 +1128,32 @@ function finish() {
   const lvOf = i => i === 0 ? ` (${LV_NAME[state.levels.ws]})` : i === 2 ? ` (${LV_NAME[state.levels.pz]})` : '';
   $('breakdown').innerHTML = names.map((n, i) => `<div>${n}${lvOf(i)}<b>${state.stageScores[i]}</b></div>`).join('') +
     `<div>⏱ Tempo total<b>${fmt(state.elapsed)}</b></div><div>⚡ Bônus de rapidez<b>+${bonus}</b></div>`;
-  const { id, posicao } = Lian.Ranking.add(GAME_ID, { ...state.player, pontos: state.score, tempo: state.elapsed });
-  state.rankTab = 'turma';
-  renderRanking('rankFinal', id);
-  const all = Lian.Ranking.all(GAME_ID), p = state.player;
-  const posIn = f => all.filter(e => Object.keys(f).every(k => e[k] === f[k])).findIndex(e => e.id === id) + 1;
-  $('posCards').innerHTML = `
-    <div>🏆 Na turma<b>${posIn({ escola: p.escola, turma: p.turma })}º</b></div>
-    <div>🏫 Na escola<b>${posIn({ escola: p.escola })}º</b></div>
-    <div>🌎 Geral<b>${posicao}º</b></div>`;
+  const p = state.player, score = state.score, tempo = state.elapsed;
+  let prev = 0;
   try {
-    const prev = +(localStorage.getItem('hs_descobrimento') || 0);
-    if (state.score > prev) {
-      localStorage.setItem('hs_descobrimento', state.score);
-      $('finalRecord').textContent = `🏆 Novo recorde! (${posicao}º lugar no geral)`;
-    } else {
-      $('finalRecord').textContent = `Você ficou em ${posicao}º lugar no geral · Recorde: ${prev}`;
-    }
+    prev = +(localStorage.getItem('hs_descobrimento') || 0);
+    if (score > prev) localStorage.setItem('hs_descobrimento', score);
   } catch (e) {}
+  state.rankTab = 'turma';
+  state.rank = { ...state.rank, loading: true };
+  $('posCards').innerHTML = '<div>🏆 Na turma<b>…</b></div><div>🏫 Na escola<b>…</b></div><div>🌎 Geral<b>…</b></div>';
+  $('finalRecord').textContent = '⏳ Salvando sua pontuação no ranking…';
+  renderRanking('rankFinal');
   show('final');
   confetti(50);
+
+  Lian.Ranking.add(GAME_ID, { ...p, pontos: score, tempo, niveis: { ...state.levels } }).then(({ id, online, list }) => {
+    state.rank = { online, loading: false, list };
+    const pos = f => rankPosition(score, f, tempo, id);
+    const geral = pos(null);
+    $('posCards').innerHTML = `
+      <div>🏆 Na turma<b>${pos({ escola: p.escola, turma: p.turma })}º</b></div>
+      <div>🏫 Na escola<b>${pos({ escola: p.escola })}º</b></div>
+      <div>🌎 Geral<b>${geral}º</b></div>`;
+    $('finalRecord').textContent = (score > prev ? `🏆 Novo recorde neste computador! ` : '') +
+      (online ? '✅ Pontuação salva no ranking online.' : '💾 Sem internet: pontuação salva só neste computador.');
+    renderRanking('rankFinal', id);
+  });
 }
 </script>
 </body>
