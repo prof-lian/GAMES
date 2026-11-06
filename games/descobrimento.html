@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Descobrimento do Brasil ⛵</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#FBBF24; --gold-d:#B45309; --sea:#0EA5E9; --navy:#0B1F33; --paper:#FEF3C7;
+  --ok:#22C55E; --bad:#EF4444; --muted:#94A3B8;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--navy);color:white;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at 50% 0%,#12507A 0%,#0B1F33 60%)}
+button{font-family:inherit}
+
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;padding:20px 16px 40px}
+.screen.active{display:flex}
+
+/* ---------- INTRO ---------- */
+#intro{justify-content:center;text-align:center}
+.ship-big{font-size:5.5rem;animation:sail 3s ease-in-out infinite;display:inline-block}
+@keyframes sail{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+.intro-title{font-size:clamp(2rem,6vw,3.2rem);font-weight:900;color:var(--gold);margin:6px 0}
+.intro-sub{color:#CBD5E1;max-width:520px;margin:0 auto 18px;line-height:1.6}
+.stage-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:460px;width:100%;margin:0 auto 24px}
+.stage-chip{background:rgba(255,255,255,.06);border:1px solid rgba(251,191,36,.25);border-radius:14px;padding:12px 10px;font-size:.88rem;color:var(--paper)}
+.stage-chip b{display:block;font-size:1.6rem;margin-bottom:4px}
+.btn-main{background:linear-gradient(90deg,var(--gold-d),var(--gold));border:none;color:var(--navy);
+  padding:15px 44px;border-radius:16px;font-size:1.15rem;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 24px rgba(251,191,36,.35);transition:transform .2s}
+.btn-main:hover{transform:scale(1.05)}
+.btn-main:disabled{opacity:.4;cursor:default;transform:none}
+.btn-sec{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#E2E8F0;
+  padding:10px 20px;border-radius:12px;cursor:pointer;font-size:.9rem;text-decoration:none;display:inline-block;transition:all .2s}
+.btn-sec:hover{border-color:var(--gold);color:var(--gold)}
+.links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+
+/* ---------- HUD ---------- */
+.hud{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap}
+.hud .stage-name{font-weight:800;color:var(--gold)}
+.dots{display:flex;gap:6px}
+.dot{width:28px;height:8px;border-radius:4px;background:rgba(255,255,255,.15)}
+.dot.done{background:var(--ok)}.dot.now{background:var(--gold)}
+.hud .pts{font-weight:800;color:var(--paper)}
+.instr{color:#CBD5E1;text-align:center;max-width:640px;margin-bottom:14px;line-height:1.5}
+
+/* ---------- STAGE 1: CAÇA-PALAVRAS ---------- */
+.ws-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;width:100%;max-width:900px}
+.ws-grid{display:grid;gap:2px;background:rgba(0,0,0,.3);padding:6px;border-radius:14px;touch-action:none;user-select:none;
+  width:min(92vw,480px);aspect-ratio:1}
+.ws-cell{display:flex;align-items:center;justify-content:center;font-weight:800;
+  font-size:clamp(.8rem,3.2vw,1.15rem);background:var(--paper);color:#422006;border-radius:5px;cursor:pointer;transition:background .15s}
+.ws-cell.sel{background:var(--gold);color:var(--navy);transform:scale(1.05)}
+.ws-cell.found{color:white}
+.ws-cell.hint{animation:blink .6s 4}
+@keyframes blink{50%{background:#F472B6;color:white}}
+.ws-list{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;min-width:240px;flex:1;max-width:340px}
+.ws-list h3{font-size:.95rem;color:var(--gold);margin-bottom:8px}
+.ws-word{display:flex;flex-direction:column;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
+.ws-word b{letter-spacing:1px}
+.ws-word small{color:var(--muted);font-size:.75rem}
+.ws-word.found b{text-decoration:line-through;color:var(--ok)}
+.ws-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* ---------- STAGE 2: LACUNAS ---------- */
+.letter{background:var(--paper);color:#3B2105;border-radius:6px 6px 18px 18px;padding:24px 22px;max-width:720px;width:100%;
+  line-height:2.3;font-size:clamp(.95rem,2.4vw,1.08rem);box-shadow:0 10px 30px rgba(0,0,0,.4);font-family:Georgia,'Times New Roman',serif;position:relative}
+.letter::before{content:'📜 Diário de Bordo — 1500';display:block;font-weight:700;color:var(--gold-d);margin-bottom:6px;font-family:'Segoe UI',system-ui,sans-serif;font-size:.85rem;letter-spacing:1px;text-transform:uppercase}
+.blank{display:inline-block;min-width:110px;border-bottom:3px dashed #B45309;padding:0 8px;margin:0 2px;text-align:center;
+  cursor:pointer;border-radius:6px 6px 0 0;font-weight:700;font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;vertical-align:baseline;transition:background .2s}
+.blank.active{background:rgba(251,191,36,.45);border-bottom-style:solid}
+.blank.filled{background:rgba(14,165,233,.18)}
+.blank.right{background:rgba(34,197,94,.3);border-bottom:3px solid #15803D;cursor:default}
+.blank.wrong{background:rgba(239,68,68,.3);border-bottom:3px solid #B91C1C;animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:720px;margin:18px 0}
+.chip{background:rgba(255,255,255,.08);border:2px solid rgba(251,191,36,.45);color:white;padding:8px 14px;border-radius:12px;
+  font-weight:700;cursor:pointer;font-size:.92rem;transition:all .15s}
+.chip:hover{background:rgba(251,191,36,.2);transform:translateY(-2px)}
+.chip.used{visibility:hidden}
+
+/* ---------- STAGE 3: QUEBRA-CABEÇA ---------- */
+.pz-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:min(90vw,420px);aspect-ratio:1;
+  background:rgba(0,0,0,.4);padding:4px;border-radius:14px;touch-action:manipulation}
+.tile{background-size:300% 300%;border-radius:6px;cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s}
+.tile:hover{transform:scale(.97)}
+.tile.picked{box-shadow:0 0 0 4px var(--gold) inset,0 0 18px var(--gold);transform:scale(.93)}
+.tile.placed{box-shadow:0 0 0 2px rgba(34,197,94,.7) inset}
+.tile .num{position:absolute;top:4px;left:6px;background:rgba(0,0,0,.55);border-radius:6px;padding:0 6px;font-size:.75rem;font-weight:800;display:none}
+.show-nums .tile .num{display:block}
+.pz-side{display:flex;flex-direction:column;gap:10px;align-items:center;max-width:220px}
+.pz-preview{width:180px;height:180px;border-radius:12px;background-size:cover;border:3px solid var(--gold)}
+.pz-side p{font-size:.85rem;color:var(--muted);text-align:center}
+.moves{font-weight:800;color:var(--paper)}
+
+/* ---------- STAGE 4: TRAVESSIA ---------- */
+.map-wrap{width:min(94vw,640px)}
+.map{width:100%;height:auto;border-radius:16px;border:3px solid #8B5A2B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:block}
+.map.storm{animation:shake .5s 2}
+.q-card{background:rgba(255,255,255,.05);border:2px solid rgba(251,191,36,.25);border-radius:20px;padding:18px;margin-top:14px;width:min(94vw,640px);animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.q-num{font-size:.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.q-text{font-weight:700;font-size:1.08rem;margin-bottom:12px;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 14px;
+  color:white;text-align:left;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .15s}
+.opt:hover:not(:disabled){border-color:var(--gold);background:rgba(251,191,36,.1)}
+.opt.right{border-color:var(--ok)!important;background:rgba(34,197,94,.18)!important;color:#86EFAC}
+.opt.wrong{border-color:var(--bad)!important;background:rgba(239,68,68,.15)!important;color:#FCA5A5}
+.opt:disabled{cursor:default}
+.fact{display:none;margin-top:12px;background:rgba(251,191,36,.08);border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 10px 10px 0;color:var(--paper);font-size:.88rem;line-height:1.45}
+.next-q{display:none;margin-top:12px}
+
+/* ---------- MODAL ---------- */
+.modal{position:fixed;inset:0;background:rgba(2,6,23,.75);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.show{display:flex}
+.modal-box{background:linear-gradient(160deg,#12324D,#0B1F33);border:2px solid var(--gold);border-radius:24px;padding:28px 24px;
+  max-width:440px;width:100%;text-align:center;animation:pop .35s ease}
+.modal-box .big{font-size:3.5rem}
+.modal-box h2{color:var(--gold);margin:6px 0 4px}
+.modal-box .got{font-size:1.4rem;font-weight:800;margin:6px 0 10px}
+.modal-box .did{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;color:var(--paper);font-size:.88rem;line-height:1.45;margin-bottom:16px;text-align:left}
+
+/* ---------- FINAL ---------- */
+#final{justify-content:center;text-align:center}
+.stars{font-size:3rem;letter-spacing:6px;margin:8px 0}
+.final-score{font-size:2.6rem;font-weight:900;color:var(--gold)}
+.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:420px;width:100%;margin:18px auto}
+.breakdown div{background:rgba(255,255,255,.06);border-radius:12px;padding:10px;font-size:.85rem;color:#CBD5E1}
+.breakdown b{display:block;font-size:1.2rem;color:white}
+.record{color:var(--ok);font-weight:700;margin-bottom:10px}
+
+.confetti{position:fixed;top:-40px;font-size:1.6rem;pointer-events:none;z-index:60;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============ INTRO ============ -->
+<section class="screen active" id="intro">
+  <div class="ship-big">⛵</div>
+  <h1 class="intro-title">Descobrimento do Brasil</h1>
+  <p class="intro-sub">Lisboa, 9 de março de 1500. A esquadra de <b>Pedro Álvares Cabral</b> vai partir!
+    Você é o novo grumete a bordo. Complete as 4 etapas da viagem para chegar à nova terra. 🌴</p>
+  <div class="stage-list">
+    <div class="stage-chip"><b>🔎</b>1. Caça-palavras</div>
+    <div class="stage-chip"><b>✏️</b>2. Complete as lacunas</div>
+    <div class="stage-chip"><b>🧩</b>3. Quebra-cabeça</div>
+    <div class="stage-chip"><b>🧭</b>4. Travessia do Atlântico</div>
+  </div>
+  <button class="btn-main" onclick="startGame()">⚓ Zarpar!</button>
+  <div class="links">
+    <a href="../jogos-educacionais.html" class="btn-sec">← Jogos Educacionais</a>
+    <a href="../index.html" class="btn-sec">🏠 Menu Principal</a>
+  </div>
+</section>
+
+<!-- ============ STAGE 1 ============ -->
+<section class="screen" id="s1">
+  <div class="hud"><span class="stage-name">🔎 Etapa 1 · Caça-palavras</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <p class="instr">Encontre as palavras escondidas! <b>Arraste</b> o dedo/mouse da primeira à última letra,
+    ou <b>toque na primeira e depois na última</b>. Elas podem estar na horizontal, vertical ou diagonal.</p>
+  <div class="ws-wrap">
+    <div class="ws-grid" id="wsGrid"></div>
+    <div class="ws-list">
+      <h3>Palavras (<span id="wsCount">0</span>/<span id="wsTotal">0</span>)</h3>
+      <div id="wsWords"></div>
+      <div class="ws-actions"><button class="btn-sec" onclick="wsHint()">💡 Dica (−5)</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE 2 ============ -->
+<section class="screen" id="s2">
+  <div class="hud"><span class="stage-name">✏️ Etapa 2 · Complete as lacunas</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <p class="instr">O diário de bordo molhou com a água do mar! <b>Toque em um espaço</b> e depois <b>na palavra certa</b> para completar.
+    Cuidado: há palavras que não servem!</p>
+  <div class="letter" id="letter"></div>
+  <div class="bank" id="bank"></div>
+  <button class="btn-main" id="checkBtn" onclick="checkBlanks()" disabled>✔ Verificar</button>
+</section>
+
+<!-- ============ STAGE 3 ============ -->
+<section class="screen" id="s3">
+  <div class="hud"><span class="stage-name">🧩 Etapa 3 · Quebra-cabeça</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <p class="instr">Uma tempestade embaralhou o mapa da chegada! <b>Toque em duas peças</b> para trocá-las de lugar e monte a imagem.</p>
+  <div class="pz-wrap">
+    <div class="pz-board" id="pzBoard"></div>
+    <div class="pz-side">
+      <div class="pz-preview" id="pzPreview"></div>
+      <p>Imagem modelo</p>
+      <div class="moves">🔄 Trocas: <span id="pzMoves">0</span></div>
+      <button class="btn-sec" onclick="document.getElementById('pzBoard').classList.toggle('show-nums')">🔢 Mostrar números</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE 4 ============ -->
+<section class="screen" id="s4">
+  <div class="hud"><span class="stage-name">🧭 Etapa 4 · Travessia do Atlântico</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <p class="instr">Responda às perguntas do capitão para guiar a esquadra de Lisboa até a nova terra! Cada acerto traz vento a favor. 💨</p>
+  <div class="map-wrap">
+    <svg class="map" id="map" viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#7DD3FC"/><stop offset="1" stop-color="#0369A1"/>
+        </linearGradient>
+      </defs>
+      <rect width="400" height="280" fill="url(#ocean)"/>
+      <g fill="#FFFFFF" opacity=".25">
+        <path d="M150 60 q8 -6 16 0 q8 6 16 0" stroke="#fff" fill="none"/>
+        <path d="M210 120 q8 -6 16 0 q8 6 16 0" stroke="#fff" fill="none"/>
+        <path d="M170 240 q8 -6 16 0 q8 6 16 0" stroke="#fff" fill="none"/>
+        <path d="M40 60 q8 -6 16 0 q8 6 16 0" stroke="#fff" fill="none"/>
+      </g>
+      <!-- América do Sul -->
+      <path d="M20 95 Q60 80 95 110 Q130 130 140 160 Q138 185 120 205 Q100 235 80 280 L0 280 L0 100 Z" fill="#65A30D" stroke="#3F6212" stroke-width="2"/>
+      <!-- Europa / Península Ibérica -->
+      <path d="M318 30 Q340 18 400 22 L400 85 Q372 76 350 82 Q330 80 322 64 Q316 48 318 30 Z" fill="#A3A3A3" stroke="#525252" stroke-width="2"/>
+      <!-- África -->
+      <path d="M300 102 Q335 92 375 104 L400 108 L400 280 L365 280 Q352 230 334 200 Q306 182 292 150 Q286 120 300 102 Z" fill="#D97706" stroke="#92400E" stroke-width="2"/>
+      <!-- Rota -->
+      <path id="route" d="M322 58 C305 80 296 104 288 128 C280 150 268 172 240 190 C205 212 165 205 132 183" fill="none" stroke="#FEF3C7" stroke-width="3" stroke-dasharray="6 6" opacity=".8"/>
+      <path id="routeDone" d="M322 58 C305 80 296 104 288 128 C280 150 268 172 240 190 C205 212 165 205 132 183" fill="none" stroke="#FBBF24" stroke-width="4"/>
+      <!-- Pontos -->
+      <g font-size="10" font-weight="700" fill="#0B1F33">
+        <circle cx="322" cy="58" r="4" fill="#B91C1C"/><text x="330" y="54">Lisboa</text>
+        <circle cx="296" cy="104" r="3" fill="#B91C1C"/><text x="246" y="100">Canárias</text>
+        <circle cx="282" cy="140" r="3" fill="#B91C1C"/><text x="226" y="144">Cabo Verde</text>
+        <circle cx="132" cy="183" r="4" fill="#B91C1C"/><text x="62" y="178" fill="#1A2E05">Porto Seguro</text>
+        <text x="20" y="250" fill="#1A2E05" font-size="12">TERRA DE</text>
+        <text x="20" y="264" fill="#1A2E05" font-size="12">VERA CRUZ</text>
+        <text x="340" y="240" font-size="12">ÁFRICA</text>
+        <text x="345" y="40" font-size="11">EUROPA</text>
+        <text x="120" y="70" font-size="13" fill="#E0F2FE" letter-spacing="3">OCEANO ATLÂNTICO</text>
+      </g>
+      <text x="200" y="270" font-size="20" text-anchor="middle">🧭</text>
+      <g id="shipG"><text id="ship" font-size="26" text-anchor="middle" dominant-baseline="middle">⛵</text></g>
+      <text id="stormIcon" x="0" y="0" font-size="26" opacity="0">⛈️</text>
+    </svg>
+  </div>
+  <div class="q-card" id="qCard">
+    <div class="q-num" id="qNum"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="opts" id="qOpts"></div>
+    <div class="fact" id="qFact"></div>
+    <button class="btn-main next-q" id="qNext" onclick="nextQuestion()">Continuar ➜</button>
+  </div>
+</section>
+
+<!-- ============ FINAL ============ -->
+<section class="screen" id="final">
+  <div class="ship-big">🌴</div>
+  <h1 class="intro-title">Terra à vista!</h1>
+  <p class="intro-sub">Você chegou com a esquadra de Cabral em 22 de abril de 1500! Parabéns, navegador(a)!</p>
+  <div class="stars" id="finalStars"></div>
+  <div class="final-score" id="finalScore"></div>
+  <div class="record" id="finalRecord"></div>
+  <div class="breakdown" id="breakdown"></div>
+  <button class="btn-main" onclick="location.reload()">🔁 Jogar de novo</button>
+  <div class="links">
+    <a href="../jogos-educacionais.html" class="btn-sec">← Jogos Educacionais</a>
+    <a href="../index.html" class="btn-sec">🏠 Menu Principal</a>
+  </div>
+</section>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="big" id="mIcon">🏆</div>
+    <h2 id="mTitle">Etapa concluída!</h2>
+    <div class="got" id="mPts"></div>
+    <div class="did" id="mFact"></div>
+    <button class="btn-main" id="mBtn">Próxima etapa ➜</button>
+  </div>
+</div>
+
+<script>
+/* ================= UTIL ================= */
+const $ = id => document.getElementById(id);
+const rand = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+let audioCtx = null;
+function beep(freq = 600, dur = .12, type = 'sine') {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch (e) {}
+}
+const good = () => { beep(660); setTimeout(() => beep(880), 100); };
+const bad = () => beep(200, .25, 'square');
+
+function confetti(n = 30) {
+  const em = ['🎉','⭐','🌴','⛵','🦜','✨'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.textContent = em[rand(em.length)];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+    c.style.animationDelay = Math.random() * .6 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+/* ================= STATE ================= */
+const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0] };
+const STAGES = ['s1', 's2', 's3', 's4'];
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function updateHud() {
+  document.querySelectorAll('.pts').forEach(p => p.textContent = '⭐ ' + state.score);
+  document.querySelectorAll('.dots').forEach(d => {
+    d.innerHTML = STAGES.map((_, i) =>
+      `<span class="dot ${i < state.stage ? 'done' : i === state.stage ? 'now' : ''}"></span>`).join('');
+  });
+}
+function addPoints(p) {
+  state.score = Math.max(0, state.score + p);
+  state.stageScores[state.stage] = Math.max(0, state.stageScores[state.stage] + p);
+  updateHud();
+}
+
+function startGame() {
+  state.stage = 0;
+  updateHud();
+  initWordSearch();
+  show('s1');
+}
+
+function stageComplete(icon, title, fact) {
+  good(); confetti();
+  $('mIcon').textContent = icon;
+  $('mTitle').textContent = title;
+  $('mPts').textContent = `+${state.stageScores[state.stage]} pontos`;
+  $('mFact').innerHTML = '💡 <b>Você sabia?</b> ' + fact;
+  $('mBtn').textContent = state.stage < 3 ? 'Próxima etapa ➜' : 'Ver resultado 🏆';
+  $('mBtn').onclick = () => {
+    $('modal').classList.remove('show');
+    state.stage++;
+    updateHud();
+    if (state.stage === 1) { initBlanks(); show('s2'); }
+    else if (state.stage === 2) { initPuzzle(); show('s3'); }
+    else if (state.stage === 3) { initVoyage(); show('s4'); }
+    else finish();
+  };
+  setTimeout(() => $('modal').classList.add('show'), 500);
+}
+
+/* ================= ETAPA 1: CAÇA-PALAVRAS ================= */
+const WORDS = [
+  { w: 'CABRAL',    d: 'Comandante da esquadra' },
+  { w: 'CARAVELA',  d: 'Barco leve e rápido' },
+  { w: 'PORTUGAL',  d: 'País de onde partiram' },
+  { w: 'INDIGENAS', d: 'Povos que já viviam aqui' },
+  { w: 'PAUBRASIL', d: 'Árvore que deu nome ao país' },
+  { w: 'CAMINHA',   d: 'Escreveu a famosa carta' },
+  { w: 'ESQUADRA',  d: 'Grupo de navios' },
+  { w: 'BAHIA',     d: 'Estado onde chegaram' },
+  { w: 'VERACRUZ',  d: 'Primeiro nome da terra' },
+  { w: 'BUSSOLA',   d: 'Instrumento que aponta o norte' },
+];
+const N = 12;
+const COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#14B8A6','#0EA5E9','#6366F1','#A855F7','#EC4899','#84CC16'];
+let ws = null;
+
+function buildGrid() {
+  const dirs = [[0, 1], [1, 0], [1, 1], [-1, 1]];
+  const sorted = [...WORDS].sort((a, b) => b.w.length - a.w.length);
+  for (let attempt = 0; attempt < 500; attempt++) {
+    const g = Array.from({ length: N }, () => Array(N).fill(''));
+    const placed = {};
+    let ok = true;
+    for (const { w } of sorted) {
+      let done = false;
+      for (let t = 0; t < 400 && !done; t++) {
+        const [dr, dc] = dirs[rand(dirs.length)];
+        const r0 = rand(N), c0 = rand(N);
+        const r1 = r0 + dr * (w.length - 1), c1 = c0 + dc * (w.length - 1);
+        if (r1 < 0 || r1 >= N || c1 < 0 || c1 >= N) continue;
+        let fits = true;
+        for (let i = 0; i < w.length; i++) {
+          const ch = g[r0 + dr * i][c0 + dc * i];
+          if (ch && ch !== w[i]) { fits = false; break; }
+        }
+        if (!fits) continue;
+        for (let i = 0; i < w.length; i++) g[r0 + dr * i][c0 + dc * i] = w[i];
+        placed[w] = { r0, c0, dr, dc };
+        done = true;
+      }
+      if (!done) { ok = false; break; }
+    }
+    if (ok) {
+      const AL = 'ABCDEFGHIJLMNOPQRSTUVXZ';
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!g[r][c]) g[r][c] = AL[rand(AL.length)];
+      return { g, placed };
+    }
+  }
+}
+
+function initWordSearch() {
+  const { g, placed } = buildGrid();
+  ws = { g, placed, found: new Set(), start: null, tapStart: null, dragging: false, cells: [] };
+  const grid = $('wsGrid');
+  grid.style.gridTemplateColumns = `repeat(${N},1fr)`;
+  grid.innerHTML = '';
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const d = document.createElement('div');
+    d.className = 'ws-cell';
+    d.textContent = g[r][c];
+    d.dataset.r = r; d.dataset.c = c;
+    grid.appendChild(d);
+    ws.cells.push(d);
+  }
+  $('wsTotal').textContent = WORDS.length;
+  $('wsCount').textContent = 0;
+  $('wsWords').innerHTML = WORDS.map(({ w, d }) =>
+    `<div class="ws-word" id="ww-${w}"><b>${w}</b><small>${d}</small></div>`).join('');
+
+  grid.onpointerdown = e => {
+    const cell = e.target.closest('.ws-cell'); if (!cell) return;
+    e.preventDefault();
+    ws.dragging = true;
+    ws.start = pos(cell);
+    paintLine(ws.start, ws.start);
+  };
+  grid.onpointermove = e => {
+    if (!ws.dragging) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el && el.closest && el.closest('.ws-cell');
+    if (cell) paintLine(ws.start, pos(cell));
+  };
+  const end = e => {
+    if (!ws.dragging) return;
+    ws.dragging = false;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el && el.closest && el.closest('.ws-cell');
+    const p = cell ? pos(cell) : ws.start;
+    if (p.r === ws.start.r && p.c === ws.start.c) {
+      // modo toque: primeira e última letra
+      if (ws.tapStart && !(ws.tapStart.r === p.r && ws.tapStart.c === p.c)) {
+        const s = ws.tapStart; ws.tapStart = null;
+        evaluate(s, p);
+      } else {
+        ws.tapStart = p;
+        clearSel();
+        cellAt(p).classList.add('sel');
+      }
+    } else {
+      ws.tapStart = null;
+      evaluate(ws.start, p);
+    }
+  };
+  grid.onpointerup = end;
+  grid.onpointercancel = () => { ws.dragging = false; clearSel(); };
+  document.addEventListener('pointerup', e => { if (ws && ws.dragging) end(e); });
+}
+const pos = cell => ({ r: +cell.dataset.r, c: +cell.dataset.c });
+const cellAt = p => ws.cells[p.r * N + p.c];
+function clearSel() { ws.cells.forEach(c => c.classList.remove('sel')); }
+function lineCells(a, b) {
+  const dr = Math.sign(b.r - a.r), dc = Math.sign(b.c - a.c);
+  const lr = Math.abs(b.r - a.r), lc = Math.abs(b.c - a.c);
+  if (!(lr === 0 || lc === 0 || lr === lc)) return null;
+  const len = Math.max(lr, lc) + 1, out = [];
+  for (let i = 0; i < len; i++) out.push({ r: a.r + dr * i, c: a.c + dc * i });
+  return out;
+}
+function paintLine(a, b) {
+  clearSel();
+  const cells = lineCells(a, b) || [a];
+  cells.forEach(p => cellAt(p).classList.add('sel'));
+}
+function evaluate(a, b) {
+  const cells = lineCells(a, b);
+  clearSel();
+  if (!cells) return;
+  const str = cells.map(p => ws.g[p.r][p.c]).join('');
+  const rev = [...str].reverse().join('');
+  const hit = WORDS.find(({ w }) => !ws.found.has(w) && (w === str || w === rev));
+  if (!hit) { if (cells.length > 2) bad(); return; }
+  ws.found.add(hit.w);
+  const color = COLORS[WORDS.indexOf(hit) % COLORS.length];
+  cells.forEach(p => { const el = cellAt(p); el.classList.add('found'); el.style.background = color; });
+  $('ww-' + hit.w).classList.add('found');
+  $('wsCount').textContent = ws.found.size;
+  addPoints(10);
+  good();
+  if (ws.found.size === WORDS.length) {
+    stageComplete('🔎', 'Caça-palavras completo!',
+      'A esquadra de Cabral tinha <b>13 embarcações</b> e cerca de <b>1.500 homens</b>. Era a maior frota que Portugal já tinha enviado ao mar!');
+  }
+}
+function wsHint() {
+  const left = WORDS.filter(({ w }) => !ws.found.has(w));
+  if (!left.length) return;
+  const { w } = left[rand(left.length)];
+  const { r0, c0 } = ws.placed[w];
+  const el = cellAt({ r: r0, c: c0 });
+  el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint');
+  addPoints(-5);
+}
+
+/* ================= ETAPA 2: LACUNAS ================= */
+const TEXT = `Em 9 de março de 1500, uma esquadra com 13 embarcações partiu de {Lisboa}, comandada por {Pedro Álvares Cabral}.
+O objetivo oficial da viagem era chegar às {Índias} para buscar especiarias, como pimenta e canela.
+No dia {22 de abril} de 1500, os navegadores avistaram um monte, que chamaram de {Monte Pascoal}.
+A nova terra recebeu primeiro o nome de {Ilha de Vera Cruz}.
+O escrivão {Pero Vaz de Caminha} escreveu uma carta ao rei contando tudo o que viu.
+Aqui já viviam muitos povos {indígenas}, com suas línguas, costumes e tradições.
+Mais tarde, o nome Brasil veio da árvore {pau-brasil}, que fornecia uma tinta vermelha.`;
+const DISTRACTORS = ['Cristóvão Colombo', '7 de setembro', 'Madri', 'Monte Everest', 'Japão'];
+let bl = null;
+
+function initBlanks() {
+  const answers = [];
+  let i = 0;
+  const html = TEXT.replace(/\{([^}]+)\}/g, (_, ans) => {
+    answers.push(ans);
+    return `<span class="blank" data-i="${i++}">&nbsp;</span>`;
+  }).replace(/\n/g, ' ');
+  $('letter').innerHTML = html;
+  bl = { answers, filled: Array(answers.length).fill(null), right: Array(answers.length).fill(false),
+         tries: Array(answers.length).fill(0), active: 0 };
+  const words = shuffle([...answers, ...DISTRACTORS]);
+  $('bank').innerHTML = words.map((w, k) => `<button class="chip" data-k="${k}">${w}</button>`).join('');
+  document.querySelectorAll('.blank').forEach(b => b.onclick = () => clickBlank(+b.dataset.i));
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => clickChip(c));
+  renderBlanks();
+}
+function blankEl(i) { return document.querySelector(`.blank[data-i="${i}"]`); }
+function renderBlanks() {
+  bl.answers.forEach((_, i) => {
+    const b = blankEl(i);
+    b.classList.toggle('active', i === bl.active && !bl.right[i]);
+    b.classList.toggle('filled', bl.filled[i] !== null && !bl.right[i]);
+    b.classList.toggle('right', bl.right[i]);
+    b.innerHTML = bl.filled[i] !== null ? bl.filled[i].text : '&nbsp;';
+  });
+  $('checkBtn').disabled = bl.filled.some(f => f === null);
+}
+function nextEmpty(from) {
+  for (let k = 0; k < bl.answers.length; k++) {
+    const i = (from + k) % bl.answers.length;
+    if (bl.filled[i] === null) return i;
+  }
+  return -1;
+}
+function clickBlank(i) {
+  if (bl.right[i]) return;
+  if (bl.filled[i] !== null) {           // devolve a palavra ao banco
+    bl.filled[i].chip.classList.remove('used');
+    bl.filled[i] = null;
+  }
+  bl.active = i;
+  renderBlanks();
+}
+function clickChip(chip) {
+  let i = bl.active;
+  if (i < 0 || bl.right[i] || bl.filled[i] !== null) i = nextEmpty(0);
+  if (i < 0) return;
+  bl.filled[i] = { text: chip.textContent, chip };
+  chip.classList.add('used');
+  beep(520, .06);
+  bl.active = nextEmpty(i + 1);
+  renderBlanks();
+}
+function checkBlanks() {
+  let wrong = [];
+  bl.answers.forEach((a, i) => {
+    if (bl.right[i]) return;
+    bl.tries[i]++;
+    if (bl.filled[i].text === a) {
+      bl.right[i] = true;
+      addPoints(bl.tries[i] === 1 ? 10 : 5);
+    } else wrong.push(i);
+  });
+  renderBlanks();
+  if (!wrong.length) {
+    stageComplete('✏️', 'Diário de bordo restaurado!',
+      'A carta de Pero Vaz de Caminha é considerada a <b>"certidão de nascimento" do Brasil</b>. Ela foi escrita em Porto Seguro e enviada ao rei D. Manuel I.');
+    return;
+  }
+  bad();
+  wrong.forEach(i => blankEl(i).classList.add('wrong'));
+  $('checkBtn').disabled = true;
+  setTimeout(() => {
+    wrong.forEach(i => {
+      blankEl(i).classList.remove('wrong');
+      bl.filled[i].chip.classList.remove('used');
+      bl.filled[i] = null;
+    });
+    bl.active = nextEmpty(0);
+    renderBlanks();
+  }, 1200);
+}
+
+/* ================= ETAPA 3: QUEBRA-CABEÇA ================= */
+const PUZZLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#FDE68A"/></linearGradient>
+ <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0EA5E9"/><stop offset="1" stop-color="#1E3A8A"/></linearGradient>
+</defs>
+<rect width="300" height="300" fill="url(#sky)"/>
+<circle cx="240" cy="60" r="30" fill="#FBBF24"/>
+<circle cx="240" cy="60" r="40" fill="#FBBF24" opacity=".25"/>
+<g fill="#FFFFFF"><ellipse cx="70" cy="45" rx="30" ry="11"/><ellipse cx="92" cy="38" rx="20" ry="10"/><ellipse cx="170" cy="85" rx="24" ry="8"/></g>
+<g stroke="#1E293B" stroke-width="2" fill="none"><path d="M140 40 q5 -5 10 0 q5 -5 10 0"/><path d="M180 30 q4 -4 8 0 q4 -4 8 0"/></g>
+<path d="M0 175 L0 120 Q30 70 62 60 Q85 75 110 140 Q125 160 140 178 Z" fill="#166534"/>
+<path d="M0 178 Q50 140 100 150 Q130 158 150 180 Z" fill="#22C55E"/>
+<text x="20" y="100" font-size="11" font-family="sans-serif" font-weight="bold" fill="#DCFCE7">Monte Pascoal</text>
+<g><path d="M118 178 q2 -30 8 -48" stroke="#78350F" stroke-width="4" fill="none"/>
+ <path d="M126 130 q-18 -4 -26 8 M126 130 q16 -8 26 2 M126 130 q-6 -16 -18 -18 M126 130 q10 -14 22 -12" stroke="#15803D" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+<g><path d="M78 176 q-2 -24 4 -38" stroke="#78350F" stroke-width="4" fill="none"/>
+ <path d="M82 138 q-16 -2 -22 8 M82 138 q14 -6 22 4 M82 138 q-4 -14 -16 -14" stroke="#15803D" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+<rect y="172" width="300" height="128" fill="url(#sea)"/>
+<path d="M0 172 Q40 166 80 172 Q120 180 160 172 L160 178 L0 182 Z" fill="#FDE68A"/>
+<g stroke="#BAE6FD" stroke-width="2" fill="none" opacity=".8">
+ <path d="M20 215 q10 -6 20 0 q10 6 20 0"/><path d="M200 205 q10 -6 20 0 q10 6 20 0"/>
+ <path d="M60 265 q10 -6 20 0 q10 6 20 0"/><path d="M230 275 q10 -6 20 0 q10 6 20 0"/>
+ <path d="M130 290 q10 -6 20 0 q10 6 20 0"/></g>
+<line x1="200" y1="110" x2="200" y2="232" stroke="#451A03" stroke-width="4"/>
+<line x1="245" y1="140" x2="245" y2="232" stroke="#451A03" stroke-width="3"/>
+<path d="M170 120 Q200 112 230 120 L226 190 Q200 184 174 190 Z" fill="#FFFBEB" stroke="#78350F" stroke-width="2"/>
+<rect x="194" y="135" width="12" height="40" fill="#DC2626"/><rect x="180" y="149" width="40" height="12" fill="#DC2626"/>
+<path d="M245 145 L278 205 L245 205 Z" fill="#FFFBEB" stroke="#78350F" stroke-width="2"/>
+<path d="M200 98 l14 6 l-14 6 Z" fill="#DC2626"/>
+<path d="M150 225 L292 225 Q282 258 258 262 L180 262 Q160 255 150 225 Z" fill="#92400E" stroke="#451A03" stroke-width="3"/>
+<line x1="160" y1="238" x2="286" y2="238" stroke="#FBBF24" stroke-width="3"/>
+<g fill="#451A03"><circle cx="190" cy="250" r="3"/><circle cx="215" cy="250" r="3"/><circle cx="240" cy="250" r="3"/><circle cx="265" cy="250" r="3"/></g>
+<g font-size="20"><text x="30" y="240">🐟</text><text x="250" y="110">🦜</text></g>
+</svg>`;
+const PUZZLE_URL = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(PUZZLE_SVG) + '")';
+let pz = null;
+
+function initPuzzle() {
+  let perm;
+  do { perm = shuffle([0,1,2,3,4,5,6,7,8]); } while (perm.filter((v, i) => v === i).length > 2);
+  pz = { perm, picked: null, moves: 0, done: false };
+  $('pzPreview').style.backgroundImage = PUZZLE_URL;
+  $('pzMoves').textContent = 0;
+  renderPuzzle();
+}
+function renderPuzzle() {
+  const b = $('pzBoard');
+  b.innerHTML = '';
+  pz.perm.forEach((piece, slot) => {
+    const t = document.createElement('div');
+    t.className = 'tile' + (piece === slot ? ' placed' : '') + (pz.picked === slot ? ' picked' : '');
+    t.style.backgroundImage = PUZZLE_URL;
+    t.style.backgroundPosition = `${(piece % 3) * 50}% ${Math.floor(piece / 3) * 50}%`;
+    t.innerHTML = `<span class="num">${piece + 1}</span>`;
+    t.onclick = () => clickTile(slot);
+    b.appendChild(t);
+  });
+}
+function clickTile(slot) {
+  if (pz.done) return;
+  if (pz.picked === null) { pz.picked = slot; beep(500, .05); renderPuzzle(); return; }
+  if (pz.picked === slot) { pz.picked = null; renderPuzzle(); return; }
+  const a = pz.picked;
+  [pz.perm[a], pz.perm[slot]] = [pz.perm[slot], pz.perm[a]];
+  pz.picked = null;
+  pz.moves++;
+  $('pzMoves').textContent = pz.moves;
+  beep(pz.perm[slot] === slot || pz.perm[a] === a ? 760 : 420, .08);
+  renderPuzzle();
+  if (pz.perm.every((v, i) => v === i)) {
+    pz.done = true;
+    addPoints(Math.max(50, 150 - Math.max(0, pz.moves - 8) * 5));
+    stageComplete('🧩', 'Imagem montada!',
+      'Em 22 de abril de 1500 os portugueses avistaram o <b>Monte Pascoal</b>, na atual Bahia. Recebeu esse nome porque era a semana da <b>Páscoa</b>.');
+  }
+}
+
+/* ================= ETAPA 4: TRAVESSIA ================= */
+const QUESTIONS = [
+  { q: 'Em que ano a esquadra de Cabral chegou ao Brasil?', a: '1500', o: ['1492', '1822'],
+    f: 'Os portugueses chegaram em 22 de abril de <b>1500</b>. Em 1492 foi Cristóvão Colombo que chegou à América, e em 1822 aconteceu a Independência do Brasil.' },
+  { q: 'De qual país a esquadra partiu?', a: 'Portugal', o: ['Espanha', 'Itália'],
+    f: 'A esquadra saiu do rio Tejo, em <b>Lisboa</b>, capital de Portugal, no dia 9 de março de 1500.' },
+  { q: 'Qual era o destino oficial da viagem?', a: 'As Índias', o: ['O Japão', 'O Polo Norte'],
+    f: 'Eles queriam chegar às <b>Índias</b> para comprar especiarias, como pimenta, cravo e canela, que valiam muito dinheiro na Europa.' },
+  { q: 'Que tipo de barco leve e rápido os portugueses usavam?', a: 'Caravela', o: ['Submarino', 'Navio a vapor'],
+    f: 'A <b>caravela</b> tinha velas triangulares e conseguia navegar até contra o vento. A esquadra também tinha <b>naus</b>, que eram maiores.' },
+  { q: 'Quem já vivia nas terras que hoje são o Brasil?', a: 'Povos indígenas', o: ['Ninguém', 'Os romanos'],
+    f: 'Milhões de <b>indígenas</b> já viviam aqui. Os primeiros que os portugueses encontraram foram os <b>Tupiniquins</b>.' },
+  { q: 'Qual foi o primeiro nome dado à nova terra?', a: 'Ilha de Vera Cruz', o: ['Nova Lisboa', 'Terra do Sol'],
+    f: 'Primeiro foi <b>Ilha de Vera Cruz</b>, depois <b>Terra de Santa Cruz</b> e, por fim, <b>Brasil</b>, por causa do pau-brasil.' },
+  { q: 'O que os navegadores usavam para se orientar no mar?', a: 'Bússola e astrolábio', o: ['GPS', 'Mapa no celular'],
+    f: 'A <b>bússola</b> aponta o norte e o <b>astrolábio</b> usava a posição do Sol e das estrelas para saber onde o navio estava.' },
+  { q: 'Em que lugar a esquadra ancorou ao chegar?', a: 'Porto Seguro', o: ['Rio de Janeiro', 'Brasília'],
+    f: 'Os navios encontraram um lugar abrigado e chamaram de <b>Porto Seguro</b>, na Bahia. Lá foi celebrada a Primeira Missa, em 26 de abril de 1500.' },
+];
+let vy = null;
+
+function initVoyage() {
+  vy = { i: 0, qs: shuffle(QUESTIONS).map(q => ({ ...q, opts: shuffle([q.a, ...q.o]) })) };
+  const route = $('route');
+  vy.len = route.getTotalLength();
+  $('routeDone').setAttribute('stroke-dasharray', vy.len);
+  $('routeDone').setAttribute('stroke-dashoffset', vy.len);
+  vy.progress = 0;
+  placeShip(0);
+  renderQuestion();
+}
+function placeShip(frac) {
+  const p = $('route').getPointAtLength(vy.len * frac);
+  $('shipG').setAttribute('transform', `translate(${p.x},${p.y - 6})`);
+  $('routeDone').setAttribute('stroke-dashoffset', vy.len * (1 - frac));
+}
+function animateShip(to) {
+  const from = vy.progress, t0 = performance.now(), dur = 1200;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    placeShip(from + (to - from) * e);
+    if (k < 1) requestAnimationFrame(step); else vy.progress = to;
+  };
+  requestAnimationFrame(step);
+}
+function renderQuestion() {
+  const q = vy.qs[vy.i];
+  $('qCard').style.animation = 'none'; void $('qCard').offsetWidth; $('qCard').style.animation = '';
+  $('qNum').textContent = `Pergunta ${vy.i + 1} de ${vy.qs.length}`;
+  $('qText').textContent = q.q;
+  $('qOpts').innerHTML = q.opts.map(o => `<button class="opt">${o}</button>`).join('');
+  $('qFact').style.display = 'none';
+  $('qNext').style.display = 'none';
+  document.querySelectorAll('.opt').forEach(b => b.onclick = () => answer(b, q));
+}
+function answer(btn, q) {
+  document.querySelectorAll('.opt').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === q.a) b.classList.add('right');
+  });
+  const target = (vy.i + 1) / vy.qs.length;
+  if (btn.textContent === q.a) {
+    addPoints(15); good();
+    $('qFact').innerHTML = '💨 <b>Vento a favor!</b> ' + q.f;
+    animateShip(target);
+  } else {
+    btn.classList.add('wrong'); bad();
+    $('qFact').innerHTML = '⛈️ <b>Tempestade!</b> O barco balançou, mas seguiu viagem. ' + q.f;
+    const map = $('map');
+    map.classList.remove('storm'); void map.offsetWidth; map.classList.add('storm');
+    const p = $('route').getPointAtLength(vy.len * vy.progress);
+    const s = $('stormIcon');
+    s.setAttribute('x', p.x - 30); s.setAttribute('y', p.y - 18); s.setAttribute('opacity', 1);
+    setTimeout(() => { s.setAttribute('opacity', 0); animateShip(target); }, 900);
+  }
+  $('qFact').style.display = 'block';
+  $('qNext').style.display = 'inline-block';
+  $('qNext').textContent = vy.i < vy.qs.length - 1 ? 'Continuar ➜' : '🌴 Terra à vista!';
+}
+function nextQuestion() {
+  vy.i++;
+  if (vy.i < vy.qs.length) { renderQuestion(); return; }
+  stageComplete('🧭', 'Travessia completa!',
+    'A viagem de Lisboa até o Brasil durou cerca de <b>44 dias</b>. Depois de 10 dias por aqui, a esquadra seguiu viagem para as Índias.');
+}
+
+/* ================= FINAL ================= */
+function finish() {
+  const MAX = WORDS.length * 10 + 9 * 10 + 150 + QUESTIONS.length * 15;
+  const pct = state.score / MAX;
+  const stars = pct >= .85 ? 3 : pct >= .6 ? 2 : 1;
+  $('finalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  $('finalScore').textContent = state.score + ' pontos';
+  const names = ['🔎 Caça-palavras', '✏️ Lacunas', '🧩 Quebra-cabeça', '🧭 Travessia'];
+  $('breakdown').innerHTML = names.map((n, i) => `<div>${n}<b>${state.stageScores[i]}</b></div>`).join('');
+  try {
+    const prev = +(localStorage.getItem('hs_descobrimento') || 0);
+    if (state.score > prev) {
+      localStorage.setItem('hs_descobrimento', state.score);
+      $('finalRecord').textContent = '🏆 Novo recorde!';
+    } else {
+      $('finalRecord').textContent = `Recorde atual: ${prev}`;
+    }
+  } catch (e) {}
+  show('final');
+  confetti(50);
+}
+</script>
+</body>
+</html>

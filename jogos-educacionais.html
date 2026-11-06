@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogos Educacionais — EduPlay</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0B1F33 0%, #0E4D64 50%, #0B1F33 100%);
+    min-height: 100vh; overflow-x: hidden; color: white;
+  }
+  .waves { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .wave {
+    position: absolute; font-size: 1.6rem; opacity: .18;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    from { transform: translateX(-10vw); }
+    to   { transform: translateX(110vw); }
+  }
+  header { position: relative; z-index: 1; text-align: center; padding: 40px 16px 10px; }
+  .top-link {
+    position: absolute; left: 16px; top: 16px;
+    color: #7DD3FC; text-decoration: none; font-size: .9rem;
+    border: 1px solid rgba(125,211,252,.3); padding: 6px 14px; border-radius: 10px;
+    transition: all .2s;
+  }
+  .top-link:hover { background: rgba(125,211,252,.12); }
+  .logo {
+    font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 900; margin-top: 24px;
+    background: linear-gradient(90deg, #FDE68A, #34D399, #38BDF8);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: #94A3B8; font-size: 1.05rem; margin-top: 8px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+
+  .games-section { position: relative; z-index: 1; max-width: 1100px; margin: 36px auto; padding: 0 16px; }
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; }
+
+  .game-card {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px; padding: 28px; text-decoration: none; color: white; display: block;
+    position: relative; overflow: hidden; transition: all .3s ease; backdrop-filter: blur(10px);
+  }
+  .game-card:hover {
+    transform: translateY(-8px); border-color: var(--c);
+    box-shadow: 0 20px 40px rgba(0,0,0,.3), 0 0 30px var(--glow);
+  }
+  .new-badge {
+    position: absolute; top: 16px; right: 16px;
+    background: linear-gradient(90deg, #F59E0B, #EF4444);
+    padding: 3px 10px; border-radius: 10px; font-size: .72rem; font-weight: 800; letter-spacing: .5px;
+  }
+  .card-icon { font-size: 4rem; display: block; margin-bottom: 14px; animation: rock 3s ease-in-out infinite; }
+  @keyframes rock { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+  .card-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+  .card-desc { color: #94A3B8; font-size: .92rem; line-height: 1.5; margin-bottom: 14px; }
+  .steps { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+  .steps li {
+    background: rgba(255,255,255,.07); border-radius: 10px; padding: 6px 8px;
+    font-size: .78rem; color: #E2E8F0;
+  }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); padding: 3px 10px; border-radius: 12px; font-size: .75rem; }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .play-btn {
+    background: var(--c); color: #0B1F33; border: none; padding: 10px 22px; border-radius: 12px;
+    font-weight: 800; font-size: .9rem; cursor: pointer; box-shadow: 0 4px 12px var(--glow);
+  }
+  .card-meta { font-size: .8rem; color: #64748B; text-align: right; line-height: 1.4; }
+  .highscore-badge { background: linear-gradient(90deg, #F59E0B, #EF4444); color: white; padding: 2px 8px; border-radius: 8px; font-size: .7rem; font-weight: 700; }
+
+  .soon {
+    border: 2px dashed rgba(255,255,255,.15); border-radius: 20px; padding: 28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; color: #64748B; min-height: 220px;
+  }
+  .soon span { font-size: 3rem; margin-bottom: 10px; opacity: .6; }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 40px 16px; color: #475569; font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="waves" id="waves"></div>
+
+<header>
+  <a href="index.html" class="top-link">← Início</a>
+  <div class="logo">📚 Jogos Educacionais</div>
+  <p class="subtitle">Aprenda brincando! Jogos com várias etapas: caça-palavras, lacunas, quebra-cabeças e muito mais.</p>
+</header>
+
+<div class="games-section">
+  <div class="games-grid">
+
+    <a href="games/descobrimento.html" class="game-card" style="--c:#FBBF24; --glow:rgba(251,191,36,.3)">
+      <span class="new-badge">NOVO</span>
+      <span class="card-icon">⛵</span>
+      <div class="card-title">Descobrimento do Brasil</div>
+      <div class="card-desc">Embarque na esquadra de Cabral em 1500 e complete 4 etapas até avistar a Terra de Vera Cruz!</div>
+      <ul class="steps">
+        <li>🔎 Caça-palavras</li>
+        <li>✏️ Complete as lacunas</li>
+        <li>🧩 Quebra-cabeça</li>
+        <li>🧭 Travessia do Atlântico</li>
+      </ul>
+      <div class="card-tags">
+        <span class="tag">📜 História</span>
+        <span class="tag">4º e 5º ano</span>
+        <span class="tag">4 Etapas</span>
+      </div>
+      <div class="card-footer">
+        <button class="play-btn">▶ Jogar</button>
+        <div class="card-meta" id="score-descobrimento">⏱ ~30 min</div>
+      </div>
+    </a>
+
+    <div class="soon">
+      <span>🔒</span>
+      <strong>Em breve</strong>
+      <p style="font-size:.85rem;margin-top:6px">Novos jogos educacionais chegando!</p>
+    </div>
+
+  </div>
+</div>
+
+<footer>EduPlay · Jogos Educacionais para as aulas de Informática</footer>
+
+<script>
+  const waves = document.getElementById('waves');
+  ['🌊','⛵','🐟','🌊','🐚','🌊'].forEach((e, i) => {
+    const d = document.createElement('div');
+    d.className = 'wave';
+    d.textContent = e;
+    d.style.top = (10 + i * 15) + '%';
+    d.style.animationDuration = (18 + i * 4) + 's';
+    d.style.animationDelay = (-i * 5) + 's';
+    waves.appendChild(d);
+  });
+
+  try {
+    const hs = localStorage.getItem('hs_descobrimento');
+    if (hs) document.getElementById('score-descobrimento').innerHTML +=
+      `<br><span class="highscore-badge">🏆 Recorde: ${hs}</span>`;
+  } catch (e) {}
+</script>
+</body>
+</html>
