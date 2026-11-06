@@ -4,18 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Descobrimento do Brasil ⛵</title>
+<link rel="stylesheet" href="../assets/lian.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --gold:#FBBF24; --gold-d:#B45309; --sea:#0EA5E9; --navy:#0B1F33; --paper:#FEF3C7;
   --ok:#22C55E; --bad:#EF4444; --muted:#94A3B8;
 }
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--navy);color:white;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;z-index:-1;
-  background:radial-gradient(ellipse at 50% 0%,#12507A 0%,#0B1F33 60%)}
+body{font-family:'Segoe UI',Verdana,sans-serif;color:white;min-height:100vh;overflow-x:hidden}
 button{font-family:inherit}
 
-.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;padding:20px 16px 40px}
+.screen{display:none;min-height:calc(100vh - 64px);flex-direction:column;align-items:center;padding:20px 16px 40px}
 .screen.active{display:flex}
 
 /* ---------- INTRO ---------- */
@@ -37,6 +36,14 @@ button{font-family:inherit}
 .btn-sec:hover{border-color:var(--gold);color:var(--gold)}
 .links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 
+/* ---------- CADASTRO ---------- */
+.signup{background:#fff;color:#123a6b;border-radius:18px;padding:18px 18px 20px;max-width:440px;width:100%;margin:0 auto 18px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.signup h3{margin-bottom:12px;font-size:1.05rem}
+.signup label{display:block;font-weight:700;font-size:.85rem;margin:10px 0 4px}
+.signup select,.signup input{width:100%;padding:11px 12px;border-radius:10px;border:2px solid #CBD5E1;font-size:1rem;font-family:inherit;color:#0F172A;background:#fff}
+.signup select:focus,.signup input:focus{outline:none;border-color:#123a6b}
+.signup .err{color:#B91C1C;font-size:.82rem;font-weight:600;margin-top:8px;min-height:1em}
+
 /* ---------- HUD ---------- */
 .hud{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap}
@@ -44,26 +51,52 @@ button{font-family:inherit}
 .dots{display:flex;gap:6px}
 .dot{width:28px;height:8px;border-radius:4px;background:rgba(255,255,255,.15)}
 .dot.done{background:var(--ok)}.dot.now{background:var(--gold)}
-.hud .pts{font-weight:800;color:var(--paper)}
+.hud-stats{display:flex;gap:8px}
+.stat{background:#fff;color:#123a6b;border-radius:10px;padding:5px 12px;font-weight:800;font-size:1rem;min-width:84px;text-align:center}
+.stat small{display:block;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;opacity:.65;font-weight:700}
 .instr{color:#CBD5E1;text-align:center;max-width:640px;margin-bottom:14px;line-height:1.5}
 
 /* ---------- STAGE 1: CAÇA-PALAVRAS ---------- */
-.ws-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;width:100%;max-width:900px}
+.ws-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-areas:"grid rank" "words rank";gap:16px 20px;width:100%;max-width:1000px;align-items:start}
+.ws-gridbox{grid-area:grid;display:flex;justify-content:center}
 .ws-grid{display:grid;gap:2px;background:rgba(0,0,0,.3);padding:6px;border-radius:14px;touch-action:none;user-select:none;
-  width:min(92vw,480px);aspect-ratio:1}
+  width:min(92vw,560px);aspect-ratio:1}
+@media (max-width:860px){.ws-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"grid" "words" "rank"}}
 .ws-cell{display:flex;align-items:center;justify-content:center;font-weight:800;
-  font-size:clamp(.8rem,3.2vw,1.15rem);background:var(--paper);color:#422006;border-radius:5px;cursor:pointer;transition:background .15s}
+  font-size:clamp(.7rem,2.8vw,1.1rem);background:var(--paper);color:#422006;border-radius:5px;cursor:pointer;transition:background .15s}
 .ws-cell.sel{background:var(--gold);color:var(--navy);transform:scale(1.05)}
 .ws-cell.found{color:white}
 .ws-cell.hint{animation:blink .6s 4}
 @keyframes blink{50%{background:#F472B6;color:white}}
-.ws-list{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;min-width:240px;flex:1;max-width:340px}
-.ws-list h3{font-size:.95rem;color:var(--gold);margin-bottom:8px}
-.ws-word{display:flex;flex-direction:column;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
-.ws-word b{letter-spacing:1px}
-.ws-word small{color:var(--muted);font-size:.75rem}
+.ws-list{grid-area:words;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px}
+.ws-list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ws-list h3{font-size:.95rem;color:var(--gold)}
+.ws-words{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ws-word{display:flex;flex-direction:column;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.ws-word b{letter-spacing:1px;font-size:.92rem}
+.ws-word small{color:var(--muted);font-size:.72rem;line-height:1.3}
+.ws-word.found{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4)}
 .ws-word.found b{text-decoration:line-through;color:var(--ok)}
-.ws-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* ---------- RANKING ---------- */
+.rank{grid-area:rank;background:#fff;color:#123a6b;border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);width:100%}
+.rank h3{font-size:1rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.rank-tabs{display:flex;gap:4px;margin-bottom:10px;background:#E2E8F0;border-radius:10px;padding:3px}
+.rank-tabs button{flex:1;border:none;background:none;padding:6px 4px;border-radius:8px;font-weight:700;font-size:.75rem;color:#334155;cursor:pointer}
+.rank-tabs button.on{background:#123a6b;color:#fff}
+.rank ol{list-style:none;display:flex;flex-direction:column;gap:4px}
+.rank li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:6px;align-items:center;padding:6px 8px;border-radius:10px;background:#F1F5F9;font-size:.82rem}
+.rank li.me{background:#FEF3C7;outline:2px solid #F59E0B}
+.rank .pos{font-weight:900;text-align:center}
+.rank .who{min-width:0}
+.rank .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .who small{color:#64748B;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rank .sc{text-align:right;font-weight:900}
+.rank .sc small{display:block;color:#64748B;font-weight:600;font-size:.68rem}
+.rank .empty{color:#64748B;font-size:.85rem;text-align:center;padding:14px 4px}
+.rank .now{margin-top:10px;background:#123a6b;color:#fff;border-radius:10px;padding:8px 10px;font-size:.82rem;font-weight:700;text-align:center}
+.rank-note{color:#64748B;font-size:.68rem;margin-top:8px;text-align:center}
+.final-rank{max-width:420px;width:100%;margin:0 auto 18px;text-align:left}
 
 /* ---------- STAGE 2: LACUNAS ---------- */
 .letter{background:var(--paper);color:#3B2105;border-radius:6px 6px 18px 18px;padding:24px 22px;max-width:720px;width:100%;
@@ -86,7 +119,11 @@ button{font-family:inherit}
 .pz-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
 .pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:min(90vw,420px);aspect-ratio:1;
   background:rgba(0,0,0,.4);padding:4px;border-radius:14px;touch-action:manipulation}
-.tile{background-size:300% 300%;border-radius:6px;cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s}
+.tile{background-size:300% 300%;border-radius:6px;cursor:grab;position:relative;transition:transform .15s,box-shadow .15s;touch-action:none;user-select:none}
+.tile.dragging{opacity:.25}
+.tile.over{box-shadow:0 0 0 4px #38BDF8 inset,0 0 18px #38BDF8;transform:scale(.95)}
+.tile-ghost{position:fixed;z-index:70;pointer-events:none;border-radius:8px;background-size:300% 300%;cursor:grabbing;
+  box-shadow:0 14px 30px rgba(0,0,0,.55);transform:scale(1.08) rotate(-2deg);outline:3px solid var(--gold)}
 .tile:hover{transform:scale(.97)}
 .tile.picked{box-shadow:0 0 0 4px var(--gold) inset,0 0 18px var(--gold);transform:scale(.93)}
 .tile.placed{box-shadow:0 0 0 2px rgba(34,197,94,.7) inset}
@@ -139,6 +176,7 @@ button{font-family:inherit}
 </style>
 </head>
 <body>
+<script src="../assets/lian.js"></script>
 
 <!-- ============ INTRO ============ -->
 <section class="screen active" id="intro">
@@ -152,7 +190,17 @@ button{font-family:inherit}
     <div class="stage-chip"><b>🧩</b>3. Quebra-cabeça</div>
     <div class="stage-chip"><b>🧭</b>4. Travessia do Atlântico</div>
   </div>
-  <button class="btn-main" onclick="startGame()">⚓ Zarpar!</button>
+  <form class="signup" id="signup" novalidate onsubmit="event.preventDefault();startGame()">
+    <h3>🧑‍🎓 Quem vai jogar?</h3>
+    <label for="fEscola">Escola</label>
+    <select id="fEscola" required></select>
+    <label for="fNome">Seu nome</label>
+    <input id="fNome" maxlength="24" autocomplete="off" placeholder="Digite seu nome" required>
+    <label for="fTurma">Turma</label>
+    <select id="fTurma" required></select>
+    <div class="err" id="fErr"></div>
+  </form>
+  <button class="btn-main" type="submit" form="signup">⚓ Zarpar!</button>
   <div class="links">
     <a href="../jogos-educacionais.html" class="btn-sec">← Jogos Educacionais</a>
     <a href="../index.html" class="btn-sec">🏠 Menu Principal</a>
@@ -161,22 +209,25 @@ button{font-family:inherit}
 
 <!-- ============ STAGE 1 ============ -->
 <section class="screen" id="s1">
-  <div class="hud"><span class="stage-name">🔎 Etapa 1 · Caça-palavras</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <div class="hud"><span class="stage-name">🔎 Etapa 1 · Caça-palavras</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
   <p class="instr">Encontre as palavras escondidas! <b>Arraste</b> o dedo/mouse da primeira à última letra,
     ou <b>toque na primeira e depois na última</b>. Elas podem estar na horizontal, vertical ou diagonal.</p>
-  <div class="ws-wrap">
-    <div class="ws-grid" id="wsGrid"></div>
+  <div class="ws-layout">
+    <div class="ws-gridbox"><div class="ws-grid" id="wsGrid"></div></div>
     <div class="ws-list">
-      <h3>Palavras (<span id="wsCount">0</span>/<span id="wsTotal">0</span>)</h3>
-      <div id="wsWords"></div>
-      <div class="ws-actions"><button class="btn-sec" onclick="wsHint()">💡 Dica (−5)</button></div>
+      <div class="ws-list-head">
+        <h3>📋 Palavras encontradas: <span id="wsCount">0</span>/<span id="wsTotal">0</span></h3>
+        <button class="btn-sec" onclick="wsHint()">💡 Dica (−5)</button>
+      </div>
+      <div class="ws-words" id="wsWords"></div>
     </div>
+    <aside class="rank" id="rankS1"></aside>
   </div>
 </section>
 
 <!-- ============ STAGE 2 ============ -->
 <section class="screen" id="s2">
-  <div class="hud"><span class="stage-name">✏️ Etapa 2 · Complete as lacunas</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <div class="hud"><span class="stage-name">✏️ Etapa 2 · Complete as lacunas</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
   <p class="instr">O diário de bordo molhou com a água do mar! <b>Toque em um espaço</b> e depois <b>na palavra certa</b> para completar.
     Cuidado: há palavras que não servem!</p>
   <div class="letter" id="letter"></div>
@@ -186,8 +237,8 @@ button{font-family:inherit}
 
 <!-- ============ STAGE 3 ============ -->
 <section class="screen" id="s3">
-  <div class="hud"><span class="stage-name">🧩 Etapa 3 · Quebra-cabeça</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
-  <p class="instr">Uma tempestade embaralhou o mapa da chegada! <b>Toque em duas peças</b> para trocá-las de lugar e monte a imagem.</p>
+  <div class="hud"><span class="stage-name">🧩 Etapa 3 · Quebra-cabeça</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
+  <p class="instr">Uma tempestade embaralhou o mapa da chegada! <b>Clique na peça e arraste</b> até o lugar certo para trocá-las. Também dá para tocar em uma peça e depois em outra.</p>
   <div class="pz-wrap">
     <div class="pz-board" id="pzBoard"></div>
     <div class="pz-side">
@@ -201,7 +252,7 @@ button{font-family:inherit}
 
 <!-- ============ STAGE 4 ============ -->
 <section class="screen" id="s4">
-  <div class="hud"><span class="stage-name">🧭 Etapa 4 · Travessia do Atlântico</span><div class="dots"></div><span class="pts">⭐ 0</span></div>
+  <div class="hud"><span class="stage-name">🧭 Etapa 4 · Travessia do Atlântico</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
   <p class="instr">Responda às perguntas do capitão para guiar a esquadra de Lisboa até a nova terra! Cada acerto traz vento a favor. 💨</p>
   <div class="map-wrap">
     <svg class="map" id="map" viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
@@ -261,6 +312,7 @@ button{font-family:inherit}
   <div class="final-score" id="finalScore"></div>
   <div class="record" id="finalRecord"></div>
   <div class="breakdown" id="breakdown"></div>
+  <div class="rank final-rank" id="rankFinal"></div>
   <button class="btn-main" onclick="location.reload()">🔁 Jogar de novo</button>
   <div class="links">
     <a href="../jogos-educacionais.html" class="btn-sec">← Jogos Educacionais</a>
@@ -314,7 +366,59 @@ function confetti(n = 30) {
 }
 
 /* ================= STATE ================= */
-const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0] };
+const GAME_ID = 'descobrimento';
+const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0, timer: null, player: null, rankTab: 'turma' };
+
+/* ---------- Cadastro: escola, nome e turma ---------- */
+function initSignup() {
+  const esc = $('fEscola'), tur = $('fTurma');
+  const last = Lian.Player.get() || {};
+  esc.innerHTML = '<option value="">Selecione a escola…</option>' +
+    Object.keys(Lian.Player.escolas).map(e => `<option>${Lian.esc(e)}</option>`).join('');
+  const fillTurmas = () => {
+    const list = Lian.Player.escolas[esc.value] || [];
+    tur.innerHTML = '<option value="">' + (list.length ? 'Selecione a turma…' : 'Escolha a escola primeiro') + '</option>' +
+      list.map(t => `<option>${t}</option>`).join('');
+    tur.disabled = !list.length;
+  };
+  esc.onchange = fillTurmas;
+  if (last.escola && Lian.Player.escolas[last.escola]) esc.value = last.escola;
+  fillTurmas();
+  if (last.turma) tur.value = last.turma;
+}
+initSignup();
+
+/* ---------- Tempo ---------- */
+const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+function tick() {
+  state.elapsed = Math.floor((Date.now() - state.t0) / 1000);
+  document.querySelectorAll('.clock').forEach(c => c.textContent = fmt(state.elapsed));
+}
+
+/* ---------- Ranking ---------- */
+function renderRanking(boxId, highlightId) {
+  const p = state.player, box = $(boxId);
+  if (!box || !p) return;
+  const filtros = { turma: { escola: p.escola, turma: p.turma }, escola: { escola: p.escola }, geral: null };
+  const list = Lian.Ranking.top(GAME_ID, filtros[state.rankTab], 10);
+  const medal = i => ['🥇','🥈','🥉'][i] || (i + 1) + 'º';
+  box.innerHTML = `
+    <h3>🏆 Ranking</h3>
+    <div class="rank-tabs">
+      ${[['turma', 'Minha turma'], ['escola', 'Escola'], ['geral', 'Geral']].map(([k, t]) =>
+        `<button class="${state.rankTab === k ? 'on' : ''}" data-tab="${k}">${t}</button>`).join('')}
+    </div>
+    ${list.length ? `<ol>${list.map((e, i) => `
+      <li class="${e.id === highlightId ? 'me' : ''}">
+        <span class="pos">${medal(i)}</span>
+        <span class="who"><b>${Lian.esc(e.nome)}</b><small>${Lian.esc(e.turma)} · ${Lian.esc(Lian.Player.sigla(e.escola))}</small></span>
+        <span class="sc">${e.pontos}<small>⏱ ${fmt(e.tempo)}</small></span>
+      </li>`).join('')}</ol>`
+      : '<div class="empty">Ninguém jogou ainda.<br>Seja o primeiro! 🚀</div>'}
+    ${boxId === 'rankS1' ? `<div class="now">Você agora: ⭐ <span class="pts">${state.score}</span> · ⏱ <span class="clock">${fmt(state.elapsed)}</span></div>` : ''}
+    <div class="rank-note">Ranking salvo neste computador</div>`;
+  box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { state.rankTab = b.dataset.tab; renderRanking(boxId, highlightId); });
+}
 const STAGES = ['s1', 's2', 's3', 's4'];
 
 function show(id) {
@@ -323,7 +427,7 @@ function show(id) {
   window.scrollTo(0, 0);
 }
 function updateHud() {
-  document.querySelectorAll('.pts').forEach(p => p.textContent = '⭐ ' + state.score);
+  document.querySelectorAll('.pts').forEach(p => p.textContent = state.score);
   document.querySelectorAll('.dots').forEach(d => {
     d.innerHTML = STAGES.map((_, i) =>
       `<span class="dot ${i < state.stage ? 'done' : i === state.stage ? 'now' : ''}"></span>`).join('');
@@ -336,8 +440,17 @@ function addPoints(p) {
 }
 
 function startGame() {
+  const escola = $('fEscola').value, turma = $('fTurma').value, nome = $('fNome').value.trim().replace(/\s+/g, ' ');
+  const err = !escola ? 'Selecione a sua escola.' : nome.length < 2 ? 'Digite o seu nome.' : !turma ? 'Selecione a sua turma.' : '';
+  $('fErr').textContent = err;
+  if (err) return;
+  state.player = { escola, turma, nome };
+  Lian.Player.set(state.player);
   state.stage = 0;
+  state.t0 = Date.now();
+  state.timer = setInterval(tick, 1000);
   updateHud();
+  renderRanking('rankS1');
   initWordSearch();
   show('s1');
 }
@@ -373,9 +486,17 @@ const WORDS = [
   { w: 'BAHIA',     d: 'Estado onde chegaram' },
   { w: 'VERACRUZ',  d: 'Primeiro nome da terra' },
   { w: 'BUSSOLA',   d: 'Instrumento que aponta o norte' },
+  { w: 'NAU',         d: 'Navio grande da esquadra' },
+  { w: 'LISBOA',      d: 'Cidade de onde partiram' },
+  { w: 'ESPECIARIAS', d: 'Pimenta, cravo e canela' },
+  { w: 'ASTROLABIO',  d: 'Usava as estrelas para navegar' },
+  { w: 'TUPINIQUIM',  d: 'Povo indígena que recebeu os portugueses' },
+  { w: 'PASCOAL',     d: 'Nome do monte avistado' },
+  { w: 'OCEANO',      d: 'Atlântico, o mar que cruzaram' },
+  { w: 'MARUJO',      d: 'Marinheiro do navio' },
 ];
-const N = 12;
-const COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#14B8A6','#0EA5E9','#6366F1','#A855F7','#EC4899','#84CC16'];
+const N = 14;
+const COLORS = ['#EF4444','#F97316','#CA8A04','#16A34A','#0D9488','#0284C7','#4F46E5','#9333EA','#DB2777','#65A30D'];
 let ws = null;
 
 function buildGrid() {
@@ -664,17 +785,59 @@ function renderPuzzle() {
     t.style.backgroundImage = PUZZLE_URL;
     t.style.backgroundPosition = `${(piece % 3) * 50}% ${Math.floor(piece / 3) * 50}%`;
     t.innerHTML = `<span class="num">${piece + 1}</span>`;
-    t.onclick = () => clickTile(slot);
+    t.dataset.slot = slot;
+    t.onpointerdown = e => dragStart(e, t, slot);
     b.appendChild(t);
   });
+}
+/* arrastar e soltar (mouse e toque) */
+function dragStart(e, tile, slot) {
+  if (pz.done) return;
+  e.preventDefault();
+  const r = tile.getBoundingClientRect();
+  const d = { slot, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, ghost: null, over: null };
+  const move = ev => {
+    if (!d.ghost && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 8) return;   // ainda é um toque
+    if (!d.ghost) {
+      d.ghost = document.createElement('div');
+      d.ghost.className = 'tile-ghost';
+      d.ghost.style.cssText += `width:${r.width}px;height:${r.height}px;background-image:${tile.style.backgroundImage};background-position:${tile.style.backgroundPosition}`;
+      document.body.appendChild(d.ghost);
+      tile.classList.add('dragging');
+      pz.picked = null;
+      document.querySelectorAll('.tile.picked').forEach(t => t.classList.remove('picked'));
+    }
+    d.ghost.style.left = (ev.clientX - d.dx) + 'px';
+    d.ghost.style.top = (ev.clientY - d.dy) + 'px';
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const target = under && under.closest && under.closest('#pzBoard .tile');
+    if (d.over && d.over !== target) d.over.classList.remove('over');
+    d.over = target && target !== tile ? target : null;
+    if (d.over) d.over.classList.add('over');
+  };
+  const up = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+    if (!d.ghost) { clickTile(slot); return; }      // foi só um toque
+    d.ghost.remove();
+    tile.classList.remove('dragging');
+    if (d.over) swapTiles(slot, +d.over.dataset.slot); else renderPuzzle();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
 }
 function clickTile(slot) {
   if (pz.done) return;
   if (pz.picked === null) { pz.picked = slot; beep(500, .05); renderPuzzle(); return; }
   if (pz.picked === slot) { pz.picked = null; renderPuzzle(); return; }
   const a = pz.picked;
-  [pz.perm[a], pz.perm[slot]] = [pz.perm[slot], pz.perm[a]];
   pz.picked = null;
+  swapTiles(a, slot);
+}
+function swapTiles(a, slot) {
+  [pz.perm[a], pz.perm[slot]] = [pz.perm[slot], pz.perm[a]];
   pz.moves++;
   $('pzMoves').textContent = pz.moves;
   beep(pz.perm[slot] === slot || pz.perm[a] === a ? 760 : 420, .08);
@@ -775,20 +938,30 @@ function nextQuestion() {
 
 /* ================= FINAL ================= */
 function finish() {
-  const MAX = WORDS.length * 10 + 9 * 10 + 150 + QUESTIONS.length * 15;
+  clearInterval(state.timer);
+  tick();
+  const bonus = Math.max(0, 150 - Math.floor(state.elapsed / 6));   // quanto mais rápido, mais pontos
+  state.score += bonus;
+  const MAX = WORDS.length * 10 + 9 * 10 + 150 + QUESTIONS.length * 15 + 150;
   const pct = state.score / MAX;
   const stars = pct >= .85 ? 3 : pct >= .6 ? 2 : 1;
   $('finalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
   $('finalScore').textContent = state.score + ' pontos';
+  $('final').querySelector('.intro-sub').textContent =
+    `Parabéns, ${state.player.nome}! Você chegou com a esquadra de Cabral em 22 de abril de 1500.`;
   const names = ['🔎 Caça-palavras', '✏️ Lacunas', '🧩 Quebra-cabeça', '🧭 Travessia'];
-  $('breakdown').innerHTML = names.map((n, i) => `<div>${n}<b>${state.stageScores[i]}</b></div>`).join('');
+  $('breakdown').innerHTML = names.map((n, i) => `<div>${n}<b>${state.stageScores[i]}</b></div>`).join('') +
+    `<div>⏱ Tempo total<b>${fmt(state.elapsed)}</b></div><div>⚡ Bônus de rapidez<b>+${bonus}</b></div>`;
+  const { id, posicao } = Lian.Ranking.add(GAME_ID, { ...state.player, pontos: state.score, tempo: state.elapsed });
+  state.rankTab = 'turma';
+  renderRanking('rankFinal', id);
   try {
     const prev = +(localStorage.getItem('hs_descobrimento') || 0);
     if (state.score > prev) {
       localStorage.setItem('hs_descobrimento', state.score);
-      $('finalRecord').textContent = '🏆 Novo recorde!';
+      $('finalRecord').textContent = `🏆 Novo recorde! (${posicao}º lugar no geral)`;
     } else {
-      $('finalRecord').textContent = `Recorde atual: ${prev}`;
+      $('finalRecord').textContent = `Você ficou em ${posicao}º lugar no geral · Recorde: ${prev}`;
     }
   } catch (e) {}
   show('final');

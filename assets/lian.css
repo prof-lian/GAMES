@@ -1,0 +1,67 @@
+/* ==========================================================
+   Visual compartilhado — mesmo design do site "siteescola"
+   (Aulas de Computação · Professor Lian Ribeiro)
+   ========================================================== */
+:root {
+  --lian-azul: #123a6b;
+  --lian-azul-escuro: #0a1a3a;
+  --lian-bar-h: 64px;
+}
+
+html { background: #123a6b; }
+body {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #000 0%, #0a1a3a 35%, #123a6b 100%) fixed !important;
+  padding-top: var(--lian-bar-h);
+}
+/* grade quadriculada + pontinhos, igual ao site da escola */
+body::before {
+  content: "" !important;
+  position: fixed !important; inset: 0 !important; pointer-events: none !important; z-index: -1 !important;
+  background:
+    radial-gradient(circle at 8px 8px, rgba(255,255,255,.12) 2px, transparent 2.5px) 0 0/42px 42px,
+    linear-gradient(0deg, rgba(255,255,255,.05) 1px, transparent 1px) 0 0/42px 42px,
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px) 0 0/42px 42px !important;
+}
+
+/* telas de jogo com altura de tela cheia descontam o cabeçalho */
+.lian-fullscreen .screen { height: calc(100vh - var(--lian-bar-h)) !important; }
+.lian-transparent-screens .screen { background: transparent !important; }
+
+/* ---------- Cabeçalho com a logomarca ---------- */
+.lian-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  height: var(--lian-bar-h);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  font-family: 'Segoe UI', Verdana, sans-serif; color: #fff; text-align: left;
+}
+.lian-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; min-width: 0; }
+.lian-brand img, .lian-brand .lian-fallback {
+  width: 46px; height: 46px; border-radius: 50%; object-fit: cover;
+  border: 3px solid #fff; flex-shrink: 0; background: var(--lian-azul);
+}
+.lian-brand .lian-fallback { display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.lian-brand-txt { min-width: 0; line-height: 1.15; }
+.lian-brand-txt strong { display: block; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lian-brand-txt span { display: block; font-size: 12px; font-weight: 500; opacity: .85; white-space: nowrap; }
+.lian-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.lian-player {
+  background: #fff; color: var(--lian-azul); font-weight: 800; font-size: 12.5px;
+  padding: 6px 12px; border-radius: 10px; max-width: 46vw;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lian-home {
+  color: #fff; text-decoration: none; font-weight: 600; font-size: 13px;
+  padding: 6px 12px; border: 2px solid #fff; border-radius: 8px; transition: .2s; white-space: nowrap;
+}
+.lian-home:hover { background: #fff; color: var(--lian-azul); }
+
+@media (max-width: 560px) {
+  .lian-brand-txt span { display: none; }
+  .lian-brand-txt strong { font-size: 14px; }
+  .lian-home { padding: 5px 9px; font-size: 12px; }
+}
