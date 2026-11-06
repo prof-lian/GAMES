@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Ranking dos jogos (EduPlay · Professor Lian Ribeiro)
+    match /ranking/{id} {
+      // qualquer pessoa pode ver o ranking
+      allow read: if true;
+
+      // qualquer pessoa pode gravar uma pontuação nova, só neste formato
+      allow create: if request.resource.data.keys().hasOnly(['jogo','nome','escola','turma','pontos','tempo','niveis','data'])
+        && request.resource.data.jogo is string   && request.resource.data.jogo.size() <= 40
+        && request.resource.data.nome is string   && request.resource.data.nome.size() >= 2 && request.resource.data.nome.size() <= 24
+        && request.resource.data.escola is string && request.resource.data.escola.size() <= 80
+        && request.resource.data.turma is string  && request.resource.data.turma.size() <= 12
+        && request.resource.data.pontos is int    && request.resource.data.pontos >= 0 && request.resource.data.pontos <= 5000
+        && request.resource.data.tempo is int     && request.resource.data.tempo >= 0 && request.resource.data.tempo <= 36000
+        && (!('niveis' in request.resource.data) || request.resource.data.niveis is map)
+        && request.resource.data.data == request.time;
+
+      // ninguém altera uma pontuação depois de gravada
+      allow update: if false;
+
+      // só quem estiver logado (o professor) pode apagar
+      allow delete: if request.auth != null;
+    }
+  }
+}

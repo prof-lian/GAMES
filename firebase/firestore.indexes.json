@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "ranking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "jogo", "order": "ASCENDING" },
+        { "fieldPath": "pontos", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
