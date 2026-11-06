@@ -152,6 +152,15 @@ button{font-family:inherit}
 .lv-tag{display:inline-block;padding:2px 10px;border-radius:8px;font-size:.75rem;font-weight:800;color:#0B1F33;margin-left:6px;vertical-align:middle}
 .lv-tag.facil{background:#86EFAC}.lv-tag.medio{background:#FDE047}.lv-tag.dificil{background:#FCA5A5}
 .hidden{display:none!important}
+.teste-bar{position:fixed;right:12px;bottom:12px;z-index:80;background:#7C3AED;color:#fff;border-radius:14px;padding:10px 12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:6px;font-size:.85rem;max-width:260px;border:2px solid #fff}
+.teste-bar b small{display:block;font-weight:600;font-size:.7rem;opacity:.85}
+.teste-bar .tb-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.teste-bar button{border:none;border-radius:8px;padding:7px 10px;font-weight:800;cursor:pointer;background:#fff;color:#5B21B6}
+.teste-bar .tb-go button{padding:5px 9px}
+.teste-bar .tb-min{position:absolute;top:6px;right:6px;padding:2px 7px;background:rgba(255,255,255,.2);color:#fff}
+.teste-bar.min .tb-row{display:none}
+.teste-bar.min .tb-min{transform:rotate(180deg)}
 .shake{animation:shake .4s}
 #wsHintBtn{font-weight:700}
 .ws-levels{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.18)}
@@ -242,10 +251,6 @@ button{font-family:inherit}
     <div class="err" id="fErr"></div>
   </form>
   <button class="btn-main" type="submit" form="signup">⚓ Zarpar!</button>
-  <div class="links">
-    <a href="../jogos-educacionais.html" class="btn-sec">← Jogos Educacionais</a>
-    <a href="../index.html" class="btn-sec">🏠 Menu Principal</a>
-  </div>
 </section>
 
 <!-- ============ STAGE 1 ============ -->
@@ -1182,11 +1187,24 @@ function finish() {
   $('final').querySelector('.intro-sub').textContent =
     `Parabéns, ${state.player.nome}! Você chegou com a esquadra de Cabral em 22 de abril de 1500.`;
   const names = ['🔎 Caça-palavras', '✏️ Lacunas', '🧩 Quebra-cabeça', '🧭 Travessia'];
-  const lvOf = i => i === 0 ? ` (${LV_NAME[state.levels.ws]})` : i === 2 ? ` (${LV_NAME[state.levels.pz]})` : '';
+  const lvOf = i => { const lv = i === 0 ? state.levels.ws : i === 2 ? state.levels.pz : null; return lv ? ` (${LV_NAME[lv]})` : ''; };
   $('breakdown').innerHTML = names.map((n, i) => `<div>${n}${lvOf(i)}<b>${state.stageScores[i]}</b></div>`).join('') +
     `<div>⏱ Tempo total<b>${fmt(state.elapsed)}</b></div><div>⚡ Bônus de rapidez<b>+${bonus}</b></div>`;
   const p = state.player, score = state.score, tempo = state.elapsed;
   let prev = 0;
+  if (TESTE) {                                    // modo teste: não grava nada
+    state.rank = { ...state.rank, loading: false };
+    $('posCards').innerHTML = `
+      <div>🏆 Na turma<b>${rankPosition(score, { escola: p.escola, turma: p.turma }, tempo)}º</b></div>
+      <div>🏫 Na escola<b>${rankPosition(score, { escola: p.escola }, tempo)}º</b></div>
+      <div>🌎 Geral<b>${rankPosition(score, null, tempo)}º</b></div>`;
+    $('finalRecord').textContent = '🧪 Modo teste: este resultado NÃO foi salvo no ranking.';
+    state.rankTab = 'geral';
+    renderRanking('rankFinal');
+    show('final');
+    confetti(50);
+    return;
+  }
   try {
     prev = +(localStorage.getItem('hs_descobrimento') || 0);
     if (score > prev) localStorage.setItem('hs_descobrimento', score);
@@ -1211,6 +1229,79 @@ function finish() {
       (online ? '✅ Pontuação salva no ranking online.' : '💾 Sem internet: pontuação salva só neste computador.');
     renderRanking('rankFinal', id);
   });
+}
+
+/* ================= MODO TESTE (aberto pela página admin-jogos) ================= */
+function testeAtivo() {
+  try { return new URLSearchParams(location.search).has('teste') && +localStorage.getItem('lian_teste') > Date.now(); }
+  catch (e) { return false; }
+}
+function testePlayer() {
+  if (state.player) return;
+  const e = (state.escolas && state.escolas[0]) || Lian.Data.padrao[0];
+  state.player = { nome: 'Professor (teste)', escola: e.nome, turma: e.turmas[0] || '—' };
+  state.t0 = Date.now();
+  state.timer = setInterval(tick, 1000);
+  Lian.Ranking.load(GAME_ID).then(r => { state.rank = r; });
+}
+function testeIr(n) {
+  testePlayer();
+  $('modal').classList.remove('show');
+  if (n >= 4) { finish(); return; }
+  state.stage = n; updateHud();
+  [() => { initWordSearch(); show('s1'); }, () => { initBlanks(); show('s2'); },
+   () => { initPuzzle(); show('s3'); }, () => { initVoyage(); show('s4'); }][n]();
+}
+function testePular() {
+  if ($('modal').classList.contains('show')) { $('mBtn').click(); return; }
+  if ($('intro').classList.contains('active')) { testeIr(0); return; }
+  if ($('final').classList.contains('active')) return;
+  if (state.stage === 2 && $('lvS3').classList.contains('hidden') && pz && !pz.done && pz.phase < 2) {
+    startPhase(pz.lv, pz.phase + 1); return;                // pula só a fase do quebra-cabeça
+  }
+  testeIr(state.stage + 1);
+}
+function testeResolver() {
+  if ($('modal').classList.contains('show') || !document.querySelector('#s1.active,#s2.active,#s3.active,#s4.active')) return;
+  if (state.stage === 0) {
+    Object.entries(ws.placed).forEach(([w, { r0, c0, dr, dc }]) => {
+      if (!ws.found.has(w)) evaluate({ r: r0, c: c0 }, { r: r0 + dr * (w.length - 1), c: c0 + dc * (w.length - 1) });
+    });
+  } else if (state.stage === 1) {
+    bl.answers.forEach((a, i) => {
+      if (bl.right[i]) return;
+      if (bl.filled[i]) { bl.filled[i].chip.classList.remove('used'); bl.filled[i] = null; }
+      const chip = [...document.querySelectorAll('.chip:not(.used)')].find(c => c.textContent === a);
+      bl.filled[i] = { text: a, chip }; chip.classList.add('used');
+    });
+    renderBlanks(); checkBlanks();
+  } else if (state.stage === 2) {
+    if (!$('lvS3').classList.contains('hidden')) startPuzzle('facil');
+    if (pz.done) return;
+    pz.perm = pz.perm.map((_, i) => i); [pz.perm[0], pz.perm[1]] = [pz.perm[1], pz.perm[0]];
+    pz.picked = null; pz.moves = Math.max(0, pz.moves - 1);
+    swapTiles(0, 1);
+  } else if (state.stage === 3) {
+    const q = vy.qs[vy.i], btn = [...document.querySelectorAll('.opt')].find(b => b.textContent === q.a);
+    if (btn && !btn.disabled) btn.click(); else nextQuestion();
+  }
+}
+const TESTE = testeAtivo();
+if (TESTE) {
+  const bar = document.createElement('div');
+  bar.className = 'teste-bar';
+  bar.innerHTML = `
+    <b>🧪 MODO TESTE <small>não salva no ranking</small></b>
+    <div class="tb-row">
+      <button onclick="testePular()" title="Vai para a próxima etapa (ou fase do quebra-cabeça)">⏩ Pular</button>
+      <button onclick="testeResolver()" title="Resolve a etapa/pergunta atual">✅ Resolver</button>
+    </div>
+    <div class="tb-row tb-go">Ir para:
+      <button onclick="testeIr(0)">1</button><button onclick="testeIr(1)">2</button>
+      <button onclick="testeIr(2)">3</button><button onclick="testeIr(3)">4</button><button onclick="testeIr(4)">🏁</button>
+    </div>
+    <button class="tb-min" onclick="this.parentNode.classList.toggle('min')" title="Minimizar">▾</button>`;
+  document.body.appendChild(bar);
 }
 </script>
 </body>

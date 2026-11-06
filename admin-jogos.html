@@ -66,6 +66,11 @@ ol.steps{margin:8px 0 0 20px;line-height:1.6;font-size:.9rem}
   .rk{grid-template-columns:30px minmax(0,1fr) auto;}
   .rk .meta,.rk .pts{grid-column:2}
 }
+.games{display:flex;flex-direction:column;gap:8px}
+.game{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px 12px}
+.game .g-ico{font-size:1.8rem;text-align:center}
+.game small{display:block;color:#64748B;font-size:.78rem}
+.game .btn{text-decoration:none}
 .count{background:#123a6b;color:#fff;border-radius:20px;padding:2px 10px;font-size:.75rem}
 
 /* aviso */
@@ -130,6 +135,7 @@ ol.steps{margin:8px 0 0 20px;line-height:1.6;font-size:.9rem}
       <button data-tab="tAlunos">🧑‍🎓 Alunos</button>
       <button data-tab="tRanking">🏆 Ranking</button>
       <button data-tab="tAviso">📢 Aviso do ranking</button>
+      <button data-tab="tTeste">🧪 Testar jogos</button>
     </div>
 
     <!-- Escolas -->
@@ -186,6 +192,33 @@ ol.steps{margin:8px 0 0 20px;line-height:1.6;font-size:.9rem}
           <button class="btn del flex-none" onclick="apagarFiltrados()">🗑️ Apagar todos os resultados mostrados</button>
         </div>
         <p class="muted" style="margin-top:8px">Você pode corrigir o nome de um aluno ou apagar um resultado. Os pontos e o tempo não podem ser alterados.</p>
+      </div>
+    </div>
+
+    <!-- Testar -->
+    <div id="tTeste" class="tab hidden">
+      <div class="card">
+        <h2>🧪 Testar os jogos</h2>
+        <p class="muted">O jogo abre numa nova aba com um painel roxo de teste no canto da tela:
+          <b>⏩ Pular</b> vai para a próxima etapa (ou fase do quebra-cabeça), <b>✅ Resolver</b> resolve a etapa ou pergunta atual,
+          e <b>Ir para 1 · 2 · 3 · 4 · 🏁</b> leva direto a qualquer etapa ou à tela final.
+          No modo teste <b>nada é salvo no ranking</b>.</p>
+        <div class="games">
+          <div class="game">
+            <span class="g-ico">⛵</span>
+            <div><b>Descobrimento do Brasil</b><small>4 etapas · com painel de teste</small></div>
+            <a class="btn" href="games/descobrimento.html?teste=1" target="_blank" rel="noopener" onclick="liberarTeste()">▶ Testar</a>
+          </div>
+        </div>
+        <h3>Outros jogos (abrem normalmente, sem painel de teste)</h3>
+        <div class="games">
+          <div class="game"><span class="g-ico">🌊</span><div><b>Afunda ou Flutua?</b></div><a class="btn sec" href="games/afunda-flutua.html" target="_blank" rel="noopener">Abrir</a></div>
+          <div class="game"><span class="g-ico">🚀</span><div><b>Aventura Matemática</b></div><a class="btn sec" href="games/matematica.html" target="_blank" rel="noopener">Abrir</a></div>
+          <div class="game"><span class="g-ico">🧙</span><div><b>Feitiço das Palavras</b></div><a class="btn sec" href="games/ortografia.html" target="_blank" rel="noopener">Abrir</a></div>
+          <div class="game"><span class="g-ico">🌿</span><div><b>Mundo dos Seres Vivos</b></div><a class="btn sec" href="games/ciencias.html" target="_blank" rel="noopener">Abrir</a></div>
+          <div class="game"><span class="g-ico">🗺️</span><div><b>Viagem pelo Brasil</b></div><a class="btn sec" href="games/geografia.html" target="_blank" rel="noopener">Abrir</a></div>
+        </div>
+        <p class="muted" style="margin-top:12px">O modo teste só funciona neste computador, por 12 horas depois que você entra nesta página.</p>
       </div>
     </div>
 
@@ -270,12 +303,19 @@ async function token() {
 const api = async (method, path, body) => rest(method, path, body, await token());
 
 function view(id) { ['vLogin', 'vNoAdmin', 'vPanel'].forEach(v => $(v).classList.toggle('hidden', v !== id)); }
-function logout() { session = null; try { sessionStorage.removeItem('lian_admin'); } catch (e) {} view('vLogin'); }
+function logout() {
+  session = null;
+  try { sessionStorage.removeItem('lian_admin'); localStorage.removeItem('lian_teste'); } catch (e) {}
+  view('vLogin');
+}
+/* libera o modo teste dos jogos neste computador por 12 horas */
+function liberarTeste() { try { localStorage.setItem('lian_teste', String(Date.now() + 12 * 3600 * 1000)); } catch (e) {} }
 
 async function checkAdmin() {
   try {
     await api('GET', `/admins/${session.uid}`);
     $('whoTxt').textContent = '👤 ' + session.email;
+    liberarTeste();
     view('vPanel');
     loadAll();
   } catch (e) {
