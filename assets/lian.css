@@ -59,9 +59,12 @@ body::before {
   padding: 6px 12px; border: 2px solid #fff; border-radius: 8px; transition: .2s; white-space: nowrap;
 }
 .lian-home:hover { background: #fff; color: var(--lian-azul); }
+button.lian-home { background: transparent; cursor: pointer; font-family: inherit; }
+.lian-fs { border-color: #FBBF24; color: #FDE68A; }
 
 @media (max-width: 560px) {
   .lian-brand-txt span { display: none; }
   .lian-brand-txt strong { font-size: 14px; }
   .lian-home { padding: 5px 9px; font-size: 12px; }
+  .lian-fs { display: none; }
 }

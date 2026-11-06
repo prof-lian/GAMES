@@ -42,10 +42,11 @@ button{font-family:inherit}
 .signup label{display:block;font-weight:700;font-size:.85rem;margin:10px 0 4px}
 .signup select,.signup input{width:100%;padding:11px 12px;border-radius:10px;border:2px solid #CBD5E1;font-size:1rem;font-family:inherit;color:#0F172A;background:#fff}
 .signup select:focus,.signup input:focus{outline:none;border-color:#123a6b}
+.signup #fAluno + #fNome{margin-top:8px}
 .signup .err{color:#B91C1C;font-size:.82rem;font-weight:600;margin-top:8px;min-height:1em}
 
 /* ---------- HUD ---------- */
-.hud{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+.hud{width:100%;max-width:1600px;display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap}
 .hud .stage-name{font-weight:800;color:var(--gold)}
 .dots{display:flex;gap:6px}
@@ -57,11 +58,11 @@ button{font-family:inherit}
 .instr{color:#CBD5E1;text-align:center;max-width:640px;margin-bottom:14px;line-height:1.5}
 
 /* ---------- STAGE 1: CAÇA-PALAVRAS ---------- */
-.ws-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-areas:"grid rank" "words rank";gap:16px 20px;width:100%;max-width:1000px;align-items:start}
+.ws-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"grid" "words";gap:16px;width:100%;max-width:1600px;align-items:start}
 .ws-gridbox{grid-area:grid;display:flex;justify-content:center}
 .ws-grid{display:grid;gap:2px;background:rgba(0,0,0,.3);padding:6px;border-radius:14px;touch-action:none;user-select:none;
-  width:min(92vw,560px);aspect-ratio:1}
-@media (max-width:860px){.ws-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"grid" "words" "rank"}}
+  width:min(94vw,calc(100vh - 300px));min-width:min(94vw,320px);aspect-ratio:1}
+
 .ws-cell{display:flex;align-items:center;justify-content:center;font-weight:800;
   font-size:clamp(.7rem,2.8vw,1.1rem);background:var(--paper);color:#422006;border-radius:5px;cursor:pointer;transition:background .15s}
 .ws-cell.sel{background:var(--gold);color:var(--navy);transform:scale(1.05)}
@@ -80,6 +81,7 @@ button{font-family:inherit}
 
 /* ---------- RANKING ---------- */
 .rank{grid-area:rank;background:#fff;color:#123a6b;border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);width:100%}
+.rank-banner{background:linear-gradient(90deg,#F59E0B,#FBBF24);color:#3B2105;border-radius:10px;padding:8px 10px;font-weight:700;font-size:.85rem;margin-bottom:10px;line-height:1.35;white-space:pre-line;animation:pop .4s ease}
 .rank h3{font-size:1rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .rank-tabs{display:flex;gap:4px;margin-bottom:10px;background:#E2E8F0;border-radius:10px;padding:3px}
 .rank-tabs button{flex:1;border:none;background:none;padding:6px 4px;border-radius:8px;font-weight:700;font-size:.75rem;color:#334155;cursor:pointer}
@@ -99,7 +101,7 @@ button{font-family:inherit}
 .final-rank{max-width:420px;width:100%;margin:0 auto 18px;text-align:left}
 
 /* ---------- STAGE 2: LACUNAS ---------- */
-.letter{background:var(--paper);color:#3B2105;border-radius:6px 6px 18px 18px;padding:24px 22px;max-width:720px;width:100%;
+.letter{background:var(--paper);color:#3B2105;border-radius:6px 6px 18px 18px;padding:24px 22px;max-width:960px;width:100%;
   line-height:2.3;font-size:clamp(.95rem,2.4vw,1.08rem);box-shadow:0 10px 30px rgba(0,0,0,.4);font-family:Georgia,'Times New Roman',serif;position:relative}
 .letter::before{content:'📜 Diário de Bordo — 1500';display:block;font-weight:700;color:var(--gold-d);margin-bottom:6px;font-family:'Segoe UI',system-ui,sans-serif;font-size:.85rem;letter-spacing:1px;text-transform:uppercase}
 .blank{display:inline-block;min-width:110px;border-bottom:3px dashed #B45309;padding:0 8px;margin:0 2px;text-align:center;
@@ -117,7 +119,7 @@ button{font-family:inherit}
 
 /* ---------- STAGE 3: QUEBRA-CABEÇA ---------- */
 .pz-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
-.pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:min(92vw,520px);aspect-ratio:1;
+.pz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:min(92vw,calc(100vh - 260px));min-width:min(92vw,320px);aspect-ratio:1;
   background:rgba(0,0,0,.4);padding:4px;border-radius:14px;touch-action:manipulation}
 .tile{background-size:300% 300%;border-radius:4px;cursor:grab;position:relative;transition:transform .15s,box-shadow .15s;touch-action:none;user-select:none}
 .tile.dragging{opacity:.25}
@@ -129,8 +131,8 @@ button{font-family:inherit}
 .tile.placed{box-shadow:0 0 0 2px rgba(34,197,94,.7) inset}
 .tile .num{position:absolute;top:2px;left:2px;background:rgba(0,0,0,.6);border-radius:5px;padding:0 4px;font-size:.62rem;font-weight:800;display:none}
 .show-nums .tile .num{display:block}
-.pz-side{display:flex;flex-direction:column;gap:10px;align-items:center;max-width:220px}
-.pz-preview{width:180px;height:180px;border-radius:12px;background-size:cover;border:3px solid var(--gold)}
+.pz-side{display:flex;flex-direction:column;gap:10px;align-items:center;max-width:260px}
+.pz-preview{width:min(240px,60vw);aspect-ratio:1;height:auto;border-radius:12px;background-size:cover;border:3px solid var(--gold)}
 .pz-side p{font-size:.85rem;color:var(--muted);text-align:center}
 .pz-phase{background:#fff;color:#123a6b;border-radius:12px;padding:8px 12px;text-align:center;font-weight:800;width:100%}
 .pz-phase small{display:block;font-weight:600;font-size:.75rem;opacity:.75}
@@ -150,6 +152,17 @@ button{font-family:inherit}
 .lv-tag{display:inline-block;padding:2px 10px;border-radius:8px;font-size:.75rem;font-weight:800;color:#0B1F33;margin-left:6px;vertical-align:middle}
 .lv-tag.facil{background:#86EFAC}.lv-tag.medio{background:#FDE047}.lv-tag.dificil{background:#FCA5A5}
 .hidden{display:none!important}
+.shake{animation:shake .4s}
+#wsHintBtn{font-weight:700}
+.ws-levels{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.18)}
+.ws-levels > span{display:block;font-weight:700;font-size:.9rem;color:var(--paper);margin-bottom:8px}
+.ws-lv-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ws-lv-btns .lvl{padding:9px 6px}
+.ws-lv-btns .lvl b{font-size:1rem;margin-bottom:2px}
+.ws-lv-btns .lvl small{font-size:.72rem}
+.ws-lv-btns .lvl.on{outline:3px solid #fff;outline-offset:2px}
+.ws-lv-btns .lvl.on::after{content:' ✔ atual';font-size:.7rem;font-weight:800}
+@media (max-width:560px){.ws-lv-btns{grid-template-columns:1fr}}
 @media (max-width:560px){.level-btns{grid-template-columns:1fr}}
 
 /* ---------- RESULTADO (modal e final) ---------- */
@@ -162,10 +175,10 @@ button{font-family:inherit}
 .moves{font-weight:800;color:var(--paper)}
 
 /* ---------- STAGE 4: TRAVESSIA ---------- */
-.map-wrap{width:min(94vw,640px)}
+.map-wrap{width:min(94vw,calc((100vh - 420px) * 1.43),900px);min-width:min(94vw,360px)}
 .map{width:100%;height:auto;border-radius:16px;border:3px solid #8B5A2B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:block}
 .map.storm{animation:shake .5s 2}
-.q-card{background:rgba(255,255,255,.05);border:2px solid rgba(251,191,36,.25);border-radius:20px;padding:18px;margin-top:14px;width:min(94vw,640px);animation:pop .35s ease}
+.q-card{background:rgba(255,255,255,.05);border:2px solid rgba(251,191,36,.25);border-radius:20px;padding:18px;margin-top:14px;width:min(94vw,900px);animation:pop .35s ease}
 @keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .q-num{font-size:.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .q-text{font-weight:700;font-size:1.08rem;margin-bottom:12px;line-height:1.4}
@@ -220,11 +233,12 @@ button{font-family:inherit}
   <form class="signup" id="signup" novalidate onsubmit="event.preventDefault();startGame()">
     <h3>🧑‍🎓 Quem vai jogar?</h3>
     <label for="fEscola">Escola</label>
-    <select id="fEscola" required></select>
-    <label for="fNome">Seu nome</label>
-    <input id="fNome" maxlength="24" autocomplete="off" placeholder="Digite seu nome" required>
+    <select id="fEscola" required><option value="">Carregando escolas…</option></select>
     <label for="fTurma">Turma</label>
     <select id="fTurma" required></select>
+    <label for="fAluno" id="lNome">Seu nome</label>
+    <select id="fAluno" class="hidden"></select>
+    <input id="fNome" maxlength="40" autocomplete="off" placeholder="Digite seu nome" required>
     <div class="err" id="fErr"></div>
   </form>
   <button class="btn-main" type="submit" form="signup">⚓ Zarpar!</button>
@@ -239,24 +253,23 @@ button{font-family:inherit}
   <div class="hud"><span class="stage-name">🔎 Etapa 1 · Caça-palavras</span><div class="dots"></div><div class="hud-stats"><span class="stat"><small>Tempo</small><span class="clock">00:00</span></span><span class="stat"><small>Pontos</small><span class="pts">0</span></span></div></div>
   <p class="instr">Encontre as palavras escondidas! <b>Arraste</b> o dedo/mouse da primeira à última letra,
     ou <b>toque na primeira e depois na última</b>. <span id="wsDirs"></span></p>
-  <div class="levels" id="lvS1">
-    <h3>🎯 Escolha o nível do caça-palavras</h3>
-    <div class="level-btns">
-      <button class="lvl facil" onclick="startWordSearch('facil')"><b>😊 Fácil</b><small>10 palavras · grade 12×12<br>só horizontal e vertical<br>10 pts por palavra</small></button>
-      <button class="lvl medio" onclick="startWordSearch('medio')"><b>🤔 Médio</b><small>14 palavras · grade 14×14<br>com diagonais<br>12 pts por palavra</small></button>
-      <button class="lvl dificil" onclick="startWordSearch('dificil')"><b>🔥 Difícil</b><small>18 palavras · grade 16×16<br>até de trás para frente!<br>15 pts por palavra</small></button>
-    </div>
-  </div>
-  <div class="ws-layout hidden">
+  <div class="ws-layout">
     <div class="ws-gridbox"><div class="ws-grid" id="wsGrid"></div></div>
     <div class="ws-list">
       <div class="ws-list-head">
         <h3>📋 Palavras encontradas: <span id="wsCount">0</span>/<span id="wsTotal">0</span><span class="lv-tag" id="wsLv"></span></h3>
-        <button class="btn-sec" onclick="wsHint()">💡 Dica (−5)</button>
+        <button class="btn-sec" id="wsHintBtn" onclick="wsHint()">💡 Dica (−5) · <span id="wsHintLeft">3</span> restantes</button>
       </div>
       <div class="ws-words" id="wsWords"></div>
+      <div class="ws-levels">
+        <span>🎯 Quer outro desafio? Escolha o nível:</span>
+        <div class="ws-lv-btns">
+          <button class="lvl facil" data-lv="facil"><b>😊 Fácil</b><small>10 palavras · → ↓</small></button>
+          <button class="lvl medio" data-lv="medio"><b>🤔 Médio</b><small>14 palavras · com diagonais</small></button>
+          <button class="lvl dificil" data-lv="dificil"><b>🔥 Difícil</b><small>18 palavras · todas as direções</small></button>
+        </div>
+      </div>
     </div>
-    <aside class="rank" id="rankS1"></aside>
   </div>
 </section>
 
@@ -418,21 +431,42 @@ const state = { score: 0, stage: 0, stageScores: [0, 0, 0, 0], t0: 0, elapsed: 0
                 rank: { online: false, loading: true, list: [] } };
 
 /* ---------- Cadastro: escola, nome e turma ---------- */
-function initSignup() {
-  const esc = $('fEscola'), tur = $('fTurma');
+const OUTRO = '__outro__';
+async function initSignup() {
+  const escSel = $('fEscola'), tur = $('fTurma'), alu = $('fAluno'), nome = $('fNome');
   const last = Lian.Player.get() || {};
-  esc.innerHTML = '<option value="">Selecione a escola…</option>' +
-    Object.keys(Lian.Player.escolas).map(e => `<option>${Lian.esc(e)}</option>`).join('');
-  const fillTurmas = () => {
-    const list = Lian.Player.escolas[esc.value] || [];
-    tur.innerHTML = '<option value="">' + (list.length ? 'Selecione a turma…' : 'Escolha a escola primeiro') + '</option>' +
-      list.map(t => `<option>${t}</option>`).join('');
-    tur.disabled = !list.length;
+  const [escolas, alunos, aviso] = await Promise.all([Lian.Data.escolas(), Lian.Data.alunos(), Lian.Data.aviso()]);
+  Lian.Player.setEscolas(escolas);
+  state.escolas = escolas;
+  state.aviso = aviso && aviso.ativo && aviso.texto ? aviso.texto : '';
+  escSel.innerHTML = '<option value="">Selecione a escola…</option>' +
+    escolas.map(e => `<option value="${Lian.esc(e.id)}">${Lian.esc(e.nome)}</option>`).join('');
+  const escola = () => escolas.find(e => e.id === escSel.value);
+  const fillAlunos = () => {
+    const e = escola();
+    const lista = e && tur.value ? alunos.filter(a => a.escolaId === e.id && a.turma === tur.value)
+      .sort((x, y) => x.nome.localeCompare(y.nome, 'pt')) : [];
+    alu.classList.toggle('hidden', !lista.length);
+    alu.innerHTML = '<option value="">Selecione seu nome…</option>' +
+      lista.map(a => `<option>${Lian.esc(a.nome)}</option>`).join('') +
+      `<option value="${OUTRO}">✏️ Meu nome não está na lista</option>`;
+    nome.classList.toggle('hidden', !!lista.length);
+    $('lNome').textContent = lista.length ? 'Seu nome' : 'Digite seu nome';
   };
-  esc.onchange = fillTurmas;
-  if (last.escola && Lian.Player.escolas[last.escola]) esc.value = last.escola;
+  const fillTurmas = () => {
+    const list = (escola() || {}).turmas || [];
+    tur.innerHTML = '<option value="">' + (list.length ? 'Selecione a turma…' : 'Escolha a escola primeiro') + '</option>' +
+      list.map(t => `<option>${Lian.esc(t)}</option>`).join('');
+    tur.disabled = !list.length;
+    fillAlunos();
+  };
+  escSel.onchange = fillTurmas;
+  tur.onchange = fillAlunos;
+  alu.onchange = () => { nome.classList.toggle('hidden', alu.value !== OUTRO); if (alu.value === OUTRO) nome.focus(); };
+  const lastEsc = escolas.find(e => e.nome === last.escola);
+  if (lastEsc) escSel.value = lastEsc.id;
   fillTurmas();
-  if (last.turma) tur.value = last.turma;
+  if (last.turma && [...tur.options].some(o => o.value === last.turma)) { tur.value = last.turma; fillAlunos(); }
 }
 initSignup();
 
@@ -451,6 +485,7 @@ function renderRanking(boxId, highlightId) {
   const list = Lian.Ranking.filter(state.rank.list, filtros[state.rankTab]).slice(0, 10);
   const medal = i => ['🥇','🥈','🥉'][i] || (i + 1) + 'º';
   box.innerHTML = `
+    ${state.aviso ? `<div class="rank-banner">📢 ${Lian.esc(state.aviso)}</div>` : ''}
     <h3>🏆 Ranking</h3>
     <div class="rank-tabs">
       ${[['turma', 'Minha turma'], ['escola', 'Escola'], ['geral', 'Geral']].map(([k, t]) =>
@@ -463,7 +498,6 @@ function renderRanking(boxId, highlightId) {
         <span class="sc">${e.pontos}<small>⏱ ${fmt(e.tempo)}</small></span>
       </li>`).join('')}</ol>`
       : '<div class="empty">Ninguém jogou ainda.<br>Seja o primeiro! 🚀</div>'}
-    ${boxId === 'rankS1' ? `<div class="now">Você agora: ⭐ <span class="pts">${state.score}</span> · ⏱ <span class="clock">${fmt(state.elapsed)}</span></div>` : ''}
     <div class="rank-note">${state.rank.loading ? '⏳ Carregando ranking…' : state.rank.online ? '🌐 Ranking online · todos os computadores' : '💾 Sem internet: ranking deste computador'}</div>`;
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { state.rankTab = b.dataset.tab; renderRanking(boxId, highlightId); });
 }
@@ -488,8 +522,12 @@ function addPoints(p) {
 }
 
 function startGame() {
-  const escola = $('fEscola').value, turma = $('fTurma').value, nome = $('fNome').value.trim().replace(/\s+/g, ' ');
-  const err = !escola ? 'Selecione a sua escola.' : nome.length < 2 ? 'Digite o seu nome.' : !turma ? 'Selecione a sua turma.' : '';
+  const e = (state.escolas || []).find(x => x.id === $('fEscola').value);
+  const escola = e ? e.nome : '', turma = $('fTurma').value;
+  const usaLista = !$('fAluno').classList.contains('hidden') && $('fAluno').value !== OUTRO;
+  const nome = (usaLista ? $('fAluno').value : $('fNome').value).trim().replace(/\s+/g, ' ');
+  const err = !escola ? 'Selecione a sua escola.' : !turma ? 'Selecione a sua turma.'
+    : nome.length < 2 ? (usaLista ? 'Selecione o seu nome.' : 'Digite o seu nome.') : '';
   $('fErr').textContent = err;
   if (err) return;
   state.player = { escola, turma, nome };
@@ -499,8 +537,7 @@ function startGame() {
   state.timer = setInterval(tick, 1000);
   updateHud();
   state.rank = { online: false, loading: true, list: Lian.Ranking.all(GAME_ID) };
-  renderRanking('rankS1');
-  Lian.Ranking.load(GAME_ID).then(r => { state.rank = r; renderRanking('rankS1'); });
+  Lian.Ranking.load(GAME_ID).then(r => { state.rank = r; });   // usado na posição mostrada ao fim das etapas
   initWordSearch();
   show('s1');
 }
@@ -607,23 +644,33 @@ function buildGrid() {
   }
 }
 
+/* o caça-palavras sempre começa no Fácil; os botões embaixo trocam o nível na hora */
 function initWordSearch() {
-  // mostra a escolha de nível
-  $('lvS1').classList.remove('hidden');
-  document.querySelector('#s1 .ws-layout').classList.add('hidden');
-  $('wsDirs').textContent = '';
+  document.querySelectorAll('.ws-lv-btns .lvl').forEach(b => b.onclick = () => {
+    const lv = b.dataset.lv;
+    if (lv === state.levels.ws) return;
+    if (ws && ws.found.size && !confirm(`Trocar para o nível ${LV_NAME[lv]}? O caça-palavras recomeça e os pontos desta etapa voltam a zero.`)) return;
+    startWordSearch(lv);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  startWordSearch('facil');
 }
 function startWordSearch(lv) {
+  // se já estava jogando outro nível, descarta os pontos e o máximo daquele nível
+  state.score -= state.stageScores[0]; state.stageScores[0] = 0;
+  state.max -= state.wsMax || 0;
   WS_LV = WS_LEVELS[lv]; N = WS_LV.N; WS_WORDS = WORDS.slice(0, WS_LV.count);
   state.levels.ws = lv;
-  state.max += WS_WORDS.length * WS_LV.ppw;
-  $('lvS1').classList.add('hidden');
-  document.querySelector('#s1 .ws-layout').classList.remove('hidden');
+  state.wsMax = WS_WORDS.length * WS_LV.ppw;
+  state.max += state.wsMax;
+  updateHud();
+  document.querySelectorAll('.ws-lv-btns .lvl').forEach(b => b.classList.toggle('on', b.dataset.lv === lv));
   $('wsDirs').textContent = WS_LV.txt;
   $('wsLv').textContent = LV_NAME[lv]; $('wsLv').className = 'lv-tag ' + lv;
   beep(600, .08);
   const { g, placed } = buildGrid();
-  ws = { g, placed, found: new Set(), start: null, tapStart: null, dragging: false, cells: [] };
+  ws = { g, placed, found: new Set(), start: null, tapStart: null, dragging: false, cells: [], hints: 0 };
+  $('wsHintBtn').innerHTML = `💡 Dica (−5) · <span id="wsHintLeft">${MAX_DICAS}</span> restantes`;
   const grid = $('wsGrid');
   grid.style.gridTemplateColumns = `repeat(${N},1fr)`;
   grid.innerHTML = '';
@@ -714,7 +761,15 @@ function evaluate(a, b) {
       'A esquadra de Cabral tinha <b>13 embarcações</b> e cerca de <b>1.500 homens</b>. Era a maior frota que Portugal já tinha enviado ao mar!');
   }
 }
+const MAX_DICAS = 3;
 function wsHint() {
+  if (ws.hints >= MAX_DICAS) {
+    bad();
+    const b = $('wsHintBtn');
+    b.textContent = '🚫 Dicas esgotadas! Você já usou as 3.';
+    b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+    return;
+  }
   const left = WS_WORDS.filter(({ w }) => !ws.found.has(w));
   if (!left.length) return;
   const { w } = left[rand(left.length)];
@@ -722,6 +777,8 @@ function wsHint() {
   const el = cellAt({ r: r0, c: c0 });
   el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint');
   addPoints(-5);
+  ws.hints++;
+  $('wsHintLeft').textContent = MAX_DICAS - ws.hints;
 }
 
 /* ================= ETAPA 2: LACUNAS ================= */

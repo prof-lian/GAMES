@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Admin dos Jogos — Professor Lian</title>
+<link rel="stylesheet" href="assets/lian.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Verdana,sans-serif;color:#fff;min-height:100vh}
+button,input,select,textarea{font-family:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:clamp(1.4rem,3.5vw,2rem);margin-bottom:4px}
+.sub{color:rgba(255,255,255,.75);margin-bottom:18px;font-size:.95rem}
+.card{background:#fff;color:#0F172A;border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35);margin-bottom:16px}
+.card h2{font-size:1.1rem;color:#123a6b;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3{font-size:.95rem;color:#123a6b;margin:14px 0 8px}
+label{display:block;font-weight:700;font-size:.82rem;color:#123a6b;margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px 12px;border:2px solid #CBD5E1;border-radius:10px;font-size:.95rem;color:#0F172A;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#123a6b}
+textarea{resize:vertical;min-height:90px;line-height:1.4}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row > *{flex:1;min-width:160px}
+.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.9rem;cursor:pointer;background:#123a6b;color:#fff;white-space:nowrap;transition:filter .15s,transform .15s}
+.btn:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec{background:#E2E8F0;color:#123a6b}
+.btn.ok{background:#16A34A}
+.btn.del{background:#FEE2E2;color:#B91C1C}
+.btn.sm{padding:6px 10px;font-size:.8rem}
+.flex-none{flex:none!important;min-width:0!important}
+.muted{color:#64748B;font-size:.85rem;line-height:1.45}
+.err{color:#B91C1C;font-weight:600;font-size:.88rem;margin-top:10px;min-height:1em}
+.hidden{display:none!important}
+
+/* login */
+.login{max-width:420px;margin:30px auto}
+.uid{font-family:monospace;background:#F1F5F9;border-radius:8px;padding:8px 10px;word-break:break-all;margin:8px 0;user-select:all}
+ol.steps{margin:8px 0 0 20px;line-height:1.6;font-size:.9rem}
+
+/* topo logado */
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.who span{font-size:.9rem;opacity:.85}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{border:2px solid rgba(255,255,255,.6);background:transparent;color:#fff;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:.9rem}
+.tabs button.on,.tabs button:hover{background:#fff;color:#123a6b;border-color:#fff}
+
+/* escolas */
+.school{border:2px solid #E2E8F0;border-radius:14px;padding:14px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{background:#E0F2FE;color:#0C4A6E;border-radius:20px;padding:4px 6px 4px 12px;font-weight:700;font-size:.82rem;display:inline-flex;align-items:center;gap:4px}
+.chip button{border:none;background:rgba(12,74,110,.12);color:#0C4A6E;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900;line-height:1}
+.chip button:hover{background:#B91C1C;color:#fff}
+
+/* tabelas */
+.list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:6px 8px}
+.item input{padding:7px 10px;font-size:.9rem}
+.rk{grid-template-columns:34px minmax(0,1fr) 110px 70px auto auto}
+.rk .pos{font-weight:900;text-align:center;color:#123a6b}
+.rk .meta{font-size:.75rem;color:#64748B;line-height:1.3}
+.rk .pts{font-weight:900;color:#123a6b;text-align:right;font-size:.9rem}
+.rk .pts small{display:block;color:#64748B;font-weight:600;font-size:.7rem}
+@media (max-width:640px){
+  .rk{grid-template-columns:30px minmax(0,1fr) auto;}
+  .rk .meta,.rk .pts{grid-column:2}
+}
+.count{background:#123a6b;color:#fff;border-radius:20px;padding:2px 10px;font-size:.75rem}
+
+/* aviso */
+.preview{background:#123a6b;border-radius:14px;padding:14px;margin-top:12px}
+.preview .rank-banner{background:linear-gradient(90deg,#F59E0B,#FBBF24);color:#3B2105;border-radius:10px;padding:8px 10px;font-weight:700;font-size:.85rem;line-height:1.35;white-space:pre-line}
+.preview p{color:#fff;font-size:.8rem;margin-bottom:6px;opacity:.8}
+.switch{display:flex;align-items:center;gap:8px;font-weight:700;color:#123a6b;margin-top:10px;cursor:pointer}
+.switch input{width:20px;height:20px}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);background:#0F172A;color:#fff;border:2px solid #FBBF24;
+  border-radius:12px;padding:12px 18px;font-weight:700;z-index:90;transition:transform .3s;max-width:92vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.bad{border-color:#EF4444}
+</style>
+</head>
+<body>
+<script src="assets/lian.js"></script>
+
+<div class="wrap">
+  <h1>⚙️ Administração dos Jogos</h1>
+  <p class="sub">Cadastre escolas, turmas e alunos, corrija nomes no ranking e escreva o aviso que aparece no ranking.</p>
+
+  <!-- ===== LOGIN ===== -->
+  <section id="vLogin" class="card login">
+    <h2>🔐 Entrar</h2>
+    <form id="fLogin" novalidate>
+      <label for="lEmail">E-mail</label>
+      <input id="lEmail" type="email" autocomplete="username" required>
+      <label for="lSenha">Senha</label>
+      <input id="lSenha" type="password" autocomplete="current-password" required>
+      <div class="err" id="lErr"></div>
+      <button class="btn" style="width:100%;margin-top:6px" id="lBtn">Entrar</button>
+    </form>
+    <p class="muted" style="margin-top:12px">Use a conta criada em <b>Firebase → Authentication</b> do projeto <b>games-4efa7</b>.</p>
+  </section>
+
+  <!-- ===== SEM PERMISSÃO ===== -->
+  <section id="vNoAdmin" class="card login hidden">
+    <h2>🚫 Conta sem permissão de administrador</h2>
+    <p class="muted">Você entrou, mas esta conta ainda não está na lista de administradores. Para liberar:</p>
+    <ol class="steps">
+      <li>Abra o <a href="https://console.firebase.google.com/project/games-4efa7/firestore/data" target="_blank" rel="noopener">Firestore → Dados</a>.</li>
+      <li>Clique em <b>+ Iniciar coleção</b> e dê o nome <b>admins</b>.</li>
+      <li>No <b>ID do documento</b>, cole este código:</li>
+    </ol>
+    <div class="uid" id="myUid"></div>
+    <ol class="steps" start="4">
+      <li>Adicione um campo qualquer, por exemplo <b>nome</b> = <b>Lian</b>, e salve.</li>
+      <li>Volte aqui e clique em <b>Tentar de novo</b>.</li>
+    </ol>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="checkAdmin()">🔄 Tentar de novo</button>
+      <button class="btn sec" onclick="logout()">Sair</button>
+    </div>
+  </section>
+
+  <!-- ===== PAINEL ===== -->
+  <section id="vPanel" class="hidden">
+    <div class="who"><span id="whoTxt"></span><button class="btn sec sm" onclick="logout()">Sair</button></div>
+    <div class="tabs" id="tabs">
+      <button data-tab="tEscolas" class="on">🏫 Escolas e turmas</button>
+      <button data-tab="tAlunos">🧑‍🎓 Alunos</button>
+      <button data-tab="tRanking">🏆 Ranking</button>
+      <button data-tab="tAviso">📢 Aviso do ranking</button>
+    </div>
+
+    <!-- Escolas -->
+    <div id="tEscolas" class="tab">
+      <div class="card">
+        <h2>🏫 Escolas cadastradas</h2>
+        <div id="escList"><p class="muted">Carregando…</p></div>
+      </div>
+      <div class="card">
+        <h2>➕ Nova escola</h2>
+        <label for="nEscNome">Nome da escola</label>
+        <input id="nEscNome" maxlength="100" placeholder="Ex.: Escola Municipal …">
+        <div class="row">
+          <div><label for="nEscSigla">Nome curto (aparece no ranking)</label><input id="nEscSigla" maxlength="30" placeholder="Ex.: Anísio Teixeira"></div>
+        </div>
+        <label for="nEscTurmas">Turmas (separe por vírgula)</label>
+        <input id="nEscTurmas" placeholder="Ex.: 3º ANO A, 3º ANO B, 4º ANO A">
+        <button class="btn" style="margin-top:12px" onclick="novaEscola()">Cadastrar escola</button>
+      </div>
+    </div>
+
+    <!-- Alunos -->
+    <div id="tAlunos" class="tab hidden">
+      <div class="card">
+        <h2>🧑‍🎓 Alunos</h2>
+        <div class="row">
+          <div><label for="aEsc">Escola</label><select id="aEsc"></select></div>
+          <div><label for="aTur">Turma</label><select id="aTur"></select></div>
+        </div>
+        <h3>Cadastrar alunos nesta turma</h3>
+        <textarea id="aNovos" placeholder="Digite um nome por linha. Ex.:&#10;Ana Clara&#10;João Pedro&#10;Maria"></textarea>
+        <button class="btn" style="margin-top:8px" onclick="cadastrarAlunos()">Cadastrar</button>
+        <h3>Alunos da turma <span class="count" id="aCount">0</span></h3>
+        <label class="switch"><input type="checkbox" id="aCascade" checked> Ao renomear, corrigir o nome também no ranking</label>
+        <div class="list" id="aList"></div>
+        <p class="muted" style="margin-top:10px">No jogo, depois de escolher a escola e a turma, o aluno escolhe o nome nesta lista.
+          Se a turma não tiver alunos cadastrados, ele digita o nome.</p>
+      </div>
+    </div>
+
+    <!-- Ranking -->
+    <div id="tRanking" class="tab hidden">
+      <div class="card">
+        <h2>🏆 Ranking <span class="count" id="rCount">0</span></h2>
+        <div class="row">
+          <div><label for="rJogo">Jogo</label><select id="rJogo"><option value="descobrimento">⛵ Descobrimento do Brasil</option></select></div>
+          <div><label for="rEsc">Escola</label><select id="rEsc"></select></div>
+          <div><label for="rTur">Turma</label><select id="rTur"></select></div>
+          <div><label for="rBusca">Buscar nome</label><input id="rBusca" placeholder="Digite um nome"></div>
+        </div>
+        <div class="list" id="rList"></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn sec flex-none" onclick="loadRanking()">🔄 Atualizar</button>
+          <button class="btn del flex-none" onclick="apagarFiltrados()">🗑️ Apagar todos os resultados mostrados</button>
+        </div>
+        <p class="muted" style="margin-top:8px">Você pode corrigir o nome de um aluno ou apagar um resultado. Os pontos e o tempo não podem ser alterados.</p>
+      </div>
+    </div>
+
+    <!-- Aviso -->
+    <div id="tAviso" class="tab hidden">
+      <div class="card">
+        <h2>📢 Aviso no quadro de ranking</h2>
+        <label for="vTexto">Mensagem</label>
+        <textarea id="vTexto" maxlength="200" placeholder="Ex.: Parabéns ao 3º ANO B pelo 1º lugar! 🎉 Novo desafio na sexta-feira."></textarea>
+        <p class="muted"><span id="vLen">0</span>/200 caracteres</p>
+        <label class="switch"><input type="checkbox" id="vAtivo"> Mostrar o aviso no ranking dos jogos</label>
+        <div class="preview">
+          <p>Prévia no jogo:</p>
+          <div class="rank-banner" id="vPrev"></div>
+        </div>
+        <button class="btn ok" style="margin-top:14px" onclick="salvarAviso()">💾 Salvar aviso</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const { rest, listAll, encFields, DB, FIREBASE, Cloud } = Lian.db;
+const $ = id => document.getElementById(id);
+const esc = Lian.esc;
+const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(20)),
+  b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[b % 62]).join('');
+
+function toast(msg, bad) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.toggle('bad', !!bad); t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+const fail = e => { console.error(e); toast('❌ ' + (e.code === 403 ? 'Sem permissão. Confira as regras do Firestore.' : e.message), true); };
+
+/* ================= LOGIN (Firebase Authentication via REST) ================= */
+const AUTH = 'https://identitytoolkit.googleapis.com/v1/accounts';
+let session = null;
+try { session = JSON.parse(sessionStorage.getItem('lian_admin') || 'null'); } catch (e) {}
+
+const AUTH_ERRORS = {
+  INVALID_LOGIN_CREDENTIALS: 'E-mail ou senha incorretos.', INVALID_PASSWORD: 'E-mail ou senha incorretos.',
+  EMAIL_NOT_FOUND: 'E-mail ou senha incorretos.', INVALID_EMAIL: 'E-mail inválido.', MISSING_PASSWORD: 'Digite a senha.',
+  USER_DISABLED: 'Esta conta foi desativada.', TOO_MANY_ATTEMPTS_TRY_LATER: 'Muitas tentativas. Espere alguns minutos.',
+  OPERATION_NOT_ALLOWED: 'O login por e-mail e senha não está ativado no Firebase (Authentication → Método de login).',
+  CONFIGURATION_NOT_FOUND: 'O Authentication ainda não foi ativado no Firebase.',
+};
+function saveSession(s) { session = s; try { sessionStorage.setItem('lian_admin', JSON.stringify(s)); } catch (e) {} }
+
+$('fLogin').onsubmit = async ev => {
+  ev.preventDefault();
+  $('lErr').textContent = ''; $('lBtn').disabled = true; $('lBtn').textContent = 'Entrando…';
+  try {
+    const r = await fetch(`${AUTH}:signInWithPassword?key=${FIREBASE.apiKey}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: $('lEmail').value.trim(), password: $('lSenha').value, returnSecureToken: true }),
+    });
+    const j = await r.json();
+    if (!r.ok) { const c = (j.error && j.error.message || '').split(' ')[0]; throw new Error(AUTH_ERRORS[c] || c || 'Erro ao entrar.'); }
+    saveSession({ token: j.idToken, refresh: j.refreshToken, exp: Date.now() + (+j.expiresIn - 120) * 1000, uid: j.localId, email: j.email });
+    $('lSenha').value = '';
+    checkAdmin();
+  } catch (e) { $('lErr').textContent = e.message; }
+  finally { $('lBtn').disabled = false; $('lBtn').textContent = 'Entrar'; }
+};
+
+async function token() {
+  if (!session) throw new Error('Sessão encerrada. Entre de novo.');
+  if (Date.now() < session.exp) return session.token;
+  const r = await fetch(`https://securetoken.googleapis.com/v1/token?key=${FIREBASE.apiKey}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(session.refresh),
+  });
+  const j = await r.json();
+  if (!r.ok) { logout(); throw new Error('Sessão expirada. Entre de novo.'); }
+  saveSession({ ...session, token: j.id_token, refresh: j.refresh_token, exp: Date.now() + (+j.expires_in - 120) * 1000 });
+  return session.token;
+}
+const api = async (method, path, body) => rest(method, path, body, await token());
+
+function view(id) { ['vLogin', 'vNoAdmin', 'vPanel'].forEach(v => $(v).classList.toggle('hidden', v !== id)); }
+function logout() { session = null; try { sessionStorage.removeItem('lian_admin'); } catch (e) {} view('vLogin'); }
+
+async function checkAdmin() {
+  try {
+    await api('GET', `/admins/${session.uid}`);
+    $('whoTxt').textContent = '👤 ' + session.email;
+    view('vPanel');
+    loadAll();
+  } catch (e) {
+    if (e.code === 404 || e.code === 403) { $('myUid').textContent = session.uid; view('vNoAdmin'); }
+    else { view('vLogin'); $('lErr').textContent = e.message; }
+  }
+}
+if (session) checkAdmin();
+
+/* ================= ABAS ================= */
+$('tabs').onclick = e => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('hidden', t.id !== b.dataset.tab));
+  if (b.dataset.tab === 'tRanking') loadRanking();
+};
+
+/* ================= DADOS ================= */
+let escolas = [], alunos = [], ranking = [];
+const ordena = l => l.sort((a, b) => (a.ordem ?? 99) - (b.ordem ?? 99) || a.nome.localeCompare(b.nome, 'pt'));
+const escolaById = id => escolas.find(e => e.id === id);
+
+async function loadAll() {
+  try {
+    [escolas, alunos] = await Promise.all([listAll('escolas', await token()), listAll('alunos', await token())]);
+    escolas = ordena(escolas.map(e => ({ ...e, turmas: e.turmas || [] })));
+    renderEscolas(); fillSelects(); renderAlunos();
+    loadAviso();
+  } catch (e) { fail(e); }
+}
+
+function fillSelects() {
+  for (const [eId, tId, todos] of [['aEsc', 'aTur', false], ['rEsc', 'rTur', true]]) {
+    const es = $(eId), ts = $(tId), prevE = es.value, prevT = ts.value;
+    es.innerHTML = (todos ? '<option value="">Todas as escolas</option>' : '') +
+      escolas.map(e => `<option value="${esc(e.id)}">${esc(e.nome)}</option>`).join('');
+    if (escolas.some(e => e.id === prevE)) es.value = prevE;
+    const fillT = () => {
+      const t = (escolaById(es.value) || {}).turmas || [];
+      ts.innerHTML = (todos ? '<option value="">Todas as turmas</option>' : '') + t.map(x => `<option>${esc(x)}</option>`).join('');
+      if (t.includes(prevT)) ts.value = prevT;
+    };
+    fillT();
+    es.onchange = () => { fillT(); todos ? renderRanking() : renderAlunos(); };
+    ts.onchange = () => todos ? renderRanking() : renderAlunos();
+  }
+}
+
+/* ================= ESCOLAS ================= */
+function renderEscolas() {
+  const box = $('escList');
+  if (!escolas.length) {
+    box.innerHTML = `<p class="muted">Nenhuma escola cadastrada ainda. Enquanto isso, os jogos usam as escolas do quadro de horários.</p>
+      <button class="btn" style="margin-top:10px" onclick="importarPadrao()">📥 Importar as 2 escolas do quadro de horários</button>`;
+    return;
+  }
+  box.innerHTML = escolas.map(e => `
+    <div class="school" data-id="${esc(e.id)}">
+      <label>Nome da escola</label>
+      <input class="eNome" maxlength="100" value="${esc(e.nome)}">
+      <label>Nome curto (aparece no ranking)</label>
+      <input class="eSigla" maxlength="30" value="${esc(e.sigla || '')}">
+      <label>Turmas</label>
+      <div class="chips">${e.turmas.map(t => `<span class="chip">${esc(t)}<button title="Remover turma" data-rm="${esc(t)}">×</button></span>`).join('') || '<span class="muted">Nenhuma turma</span>'}</div>
+      <div class="row">
+        <input class="eNovaTurma" placeholder="Nova turma (ex.: 4º ANO A)" maxlength="30">
+        <button class="btn sec flex-none eAddTurma">➕ Adicionar turma</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ok flex-none eSalvar">💾 Salvar escola</button>
+        <button class="btn del flex-none eExcluir">🗑️ Excluir escola</button>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.school').forEach(div => {
+    const e = escolaById(div.dataset.id);
+    const turmas = [...e.turmas];
+    const redrawChips = () => {
+      div.querySelector('.chips').innerHTML = turmas.map(t => `<span class="chip">${esc(t)}<button title="Remover turma" data-rm="${esc(t)}">×</button></span>`).join('') || '<span class="muted">Nenhuma turma</span>';
+    };
+    div.querySelector('.chips').onclick = ev => {
+      const b = ev.target.closest('[data-rm]'); if (!b) return;
+      const n = alunos.filter(a => a.escolaId === e.id && a.turma === b.dataset.rm).length;
+      if (n && !confirm(`A turma ${b.dataset.rm} tem ${n} aluno(s) cadastrado(s). Remover a turma mesmo assim? (os alunos continuam cadastrados)`)) return;
+      turmas.splice(turmas.indexOf(b.dataset.rm), 1); redrawChips();
+      toast('Turma removida. Clique em "Salvar escola" para confirmar.');
+    };
+    const add = () => {
+      const inp = div.querySelector('.eNovaTurma'), t = inp.value.trim().replace(/\s+/g, ' ');
+      if (!t) return;
+      if (turmas.includes(t)) return toast('Essa turma já existe.', true);
+      turmas.push(t); inp.value = ''; redrawChips();
+    };
+    div.querySelector('.eAddTurma').onclick = add;
+    div.querySelector('.eNovaTurma').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); add(); } };
+    div.querySelector('.eSalvar').onclick = () => salvarEscola(e, {
+      nome: div.querySelector('.eNome').value.trim().replace(/\s+/g, ' '),
+      sigla: div.querySelector('.eSigla').value.trim(), turmas,
+    });
+    div.querySelector('.eExcluir').onclick = () => excluirEscola(e);
+  });
+}
+
+async function salvarEscola(e, d) {
+  if (d.nome.length < 3) return toast('Digite o nome da escola.', true);
+  try {
+    await api('PATCH', `/escolas/${e.id}`, { fields: encFields({ nome: d.nome, sigla: d.sigla || d.nome, turmas: d.turmas, ordem: e.ordem ?? 99 }) });
+    let extra = '';
+    if (d.nome !== e.nome) {                      // atualiza o nome da escola nos resultados do ranking
+      const n = await renomearNoRanking({ escola: e.nome }, { escola: d.nome });
+      if (n) extra = ` (${n} resultado(s) do ranking atualizados)`;
+    }
+    Object.assign(e, d);
+    renderEscolas(); fillSelects(); renderAlunos();
+    toast('✅ Escola salva' + extra);
+  } catch (err) { fail(err); }
+}
+
+async function novaEscola() {
+  const nome = $('nEscNome').value.trim().replace(/\s+/g, ' ');
+  const sigla = $('nEscSigla').value.trim();
+  const turmas = [...new Set($('nEscTurmas').value.split(',').map(t => t.trim().replace(/\s+/g, ' ')).filter(Boolean))];
+  if (nome.length < 3) return toast('Digite o nome da escola.', true);
+  if (escolas.some(e => e.nome === nome)) return toast('Já existe uma escola com esse nome.', true);
+  try {
+    const id = newId(), ordem = escolas.length + 1;
+    await api('PATCH', `/escolas/${id}`, { fields: encFields({ nome, sigla: sigla || nome, turmas, ordem }) });
+    escolas.push({ id, nome, sigla: sigla || nome, turmas, ordem });
+    ['nEscNome', 'nEscSigla', 'nEscTurmas'].forEach(i => $(i).value = '');
+    renderEscolas(); fillSelects();
+    toast('✅ Escola cadastrada');
+  } catch (e) { fail(e); }
+}
+
+async function excluirEscola(e) {
+  const n = alunos.filter(a => a.escolaId === e.id).length;
+  if (!confirm(`Excluir a escola "${e.nome}"${n ? ` e os ${n} aluno(s) cadastrados nela` : ''}?\n\nOs resultados do ranking NÃO são apagados.`)) return;
+  try {
+    const writes = [{ delete: `${DB}/escolas/${e.id}` }, ...alunos.filter(a => a.escolaId === e.id).map(a => ({ delete: `${DB}/alunos/${a.id}` }))];
+    await commit(writes);
+    escolas = escolas.filter(x => x !== e);
+    alunos = alunos.filter(a => a.escolaId !== e.id);
+    renderEscolas(); fillSelects(); renderAlunos();
+    toast('🗑️ Escola excluída');
+  } catch (err) { fail(err); }
+}
+
+async function importarPadrao() {
+  try {
+    await commit(Lian.Data.padrao.map(e => ({ update: { name: `${DB}/escolas/${e.id}`, fields: encFields({ nome: e.nome, sigla: e.sigla, turmas: e.turmas, ordem: e.ordem }) } })));
+    toast('✅ Escolas importadas');
+    loadAll();
+  } catch (e) { fail(e); }
+}
+
+/** grava várias alterações de uma vez (até 500 por lote) */
+async function commit(writes) {
+  for (let i = 0; i < writes.length; i += 450) await api('POST', ':commit', { writes: writes.slice(i, i + 450) });
+}
+
+/* ================= ALUNOS ================= */
+function renderAlunos() {
+  const eId = $('aEsc').value, tur = $('aTur').value;
+  const lista = alunos.filter(a => a.escolaId === eId && a.turma === tur).sort((x, y) => x.nome.localeCompare(y.nome, 'pt'));
+  $('aCount').textContent = lista.length;
+  $('aList').innerHTML = !escolas.length ? '<p class="muted">Cadastre uma escola primeiro.</p>'
+    : !tur ? '<p class="muted">Esta escola não tem turmas. Adicione turmas na aba "Escolas e turmas".</p>'
+    : !lista.length ? '<p class="muted">Nenhum aluno cadastrado nesta turma.</p>'
+    : lista.map(a => `
+      <div class="item" data-id="${esc(a.id)}">
+        <input value="${esc(a.nome)}" maxlength="40" aria-label="Nome do aluno">
+        <button class="btn ok sm" data-act="save">💾 Salvar</button>
+        <button class="btn del sm" data-act="del">🗑️</button>
+      </div>`).join('');
+}
+$('aList').onclick = async ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const row = b.closest('.item'), a = alunos.find(x => x.id === row.dataset.id);
+  const e = escolaById(a.escolaId);
+  if (b.dataset.act === 'del') {
+    if (!confirm(`Excluir o aluno "${a.nome}"? (os resultados dele no ranking continuam)`)) return;
+    try { await api('DELETE', `/alunos/${a.id}`); alunos = alunos.filter(x => x !== a); renderAlunos(); toast('🗑️ Aluno excluído'); }
+    catch (err) { fail(err); }
+    return;
+  }
+  const nome = row.querySelector('input').value.trim().replace(/\s+/g, ' ');
+  if (nome.length < 2) return toast('Nome muito curto.', true);
+  if (nome === a.nome) return toast('Nada para salvar.');
+  try {
+    await api('PATCH', `/alunos/${a.id}?updateMask.fieldPaths=nome`, { fields: encFields({ nome }) });
+    let extra = '';
+    if ($('aCascade').checked && e) {
+      const n = await renomearNoRanking({ nome: a.nome, escola: e.nome, turma: a.turma }, { nome });
+      if (n) extra = ` e ${n} resultado(s) no ranking`;
+    }
+    a.nome = nome; renderAlunos();
+    toast('✅ Nome atualizado' + extra);
+  } catch (err) { fail(err); }
+};
+
+async function cadastrarAlunos() {
+  const eId = $('aEsc').value, tur = $('aTur').value;
+  if (!eId || !tur) return toast('Escolha a escola e a turma.', true);
+  const existentes = new Set(alunos.filter(a => a.escolaId === eId && a.turma === tur).map(a => a.nome.toLowerCase()));
+  const nomes = [];
+  for (const n of $('aNovos').value.split('\n').map(n => n.trim().replace(/\s+/g, ' '))) {
+    if (n.length < 2 || n.length > 40 || existentes.has(n.toLowerCase())) continue;
+    existentes.add(n.toLowerCase()); nomes.push(n);
+  }
+  if (!nomes.length) return toast('Digite pelo menos um nome novo (um por linha).', true);
+  try {
+    const novos = nomes.map(nome => ({ id: newId(), nome, escolaId: eId, turma: tur }));
+    await commit(novos.map(a => ({ update: { name: `${DB}/alunos/${a.id}`, fields: encFields({ nome: a.nome, escolaId: a.escolaId, turma: a.turma }) } })));
+    alunos.push(...novos);
+    $('aNovos').value = '';
+    renderAlunos();
+    toast(`✅ ${novos.length} aluno(s) cadastrado(s)`);
+  } catch (e) { fail(e); }
+}
+
+/* ================= RANKING ================= */
+/** troca campos em todos os resultados do ranking que batem com o filtro; devolve quantos mudaram */
+async function renomearNoRanking(filtro, novos) {
+  const filters = Object.entries(filtro).map(([k, v]) => ({ fieldFilter: { field: { fieldPath: k }, op: 'EQUAL', value: { stringValue: v } } }));
+  const rows = await api('POST', ':runQuery', { structuredQuery: {
+    from: [{ collectionId: 'ranking' }],
+    where: filters.length > 1 ? { compositeFilter: { op: 'AND', filters } } : filters[0],
+    limit: 2000,
+  } });
+  const docs = rows.filter(r => r.document).map(r => r.document.name);
+  const mask = Object.keys(novos);
+  await commit(docs.map(name => ({ update: { name, fields: encFields(novos) }, updateMask: { fieldPaths: mask }, currentDocument: { exists: true } })));
+  ranking.forEach(r => { if (Object.keys(filtro).every(k => r[k] === filtro[k])) Object.assign(r, novos); });
+  return docs.length;
+}
+
+async function loadRanking() {
+  $('rList').innerHTML = '<p class="muted">Carregando…</p>';
+  try { ranking = Lian.Ranking.sort(await Cloud.list($('rJogo').value, await token())); renderRanking(); }
+  catch (e) { fail(e); $('rList').innerHTML = ''; }
+}
+function rankFiltrado() {
+  const e = escolaById($('rEsc').value), tur = $('rTur').value, q = $('rBusca').value.trim().toLowerCase();
+  return ranking.filter(r => (!e || r.escola === e.nome) && (!tur || r.turma === tur) && (!q || r.nome.toLowerCase().includes(q)));
+}
+function renderRanking() {
+  const lista = rankFiltrado();
+  $('rCount').textContent = lista.length;
+  $('rList').innerHTML = lista.length ? lista.map((r, i) => `
+    <div class="item rk" data-id="${esc(r.id)}">
+      <span class="pos">${i + 1}º</span>
+      <input value="${esc(r.nome)}" maxlength="40" aria-label="Nome">
+      <span class="meta">${esc(r.turma)}<br>${esc(Lian.Player.sigla(r.escola))}</span>
+      <span class="pts">${r.pontos}<small>⏱ ${fmt(r.tempo || 0)}</small></span>
+      <button class="btn ok sm" data-act="save" title="Salvar nome">💾</button>
+      <button class="btn del sm" data-act="del" title="Apagar resultado">🗑️</button>
+    </div>`).join('') : '<p class="muted">Nenhum resultado.</p>';
+}
+$('rJogo').onchange = loadRanking;
+$('rBusca').oninput = renderRanking;
+$('rList').onclick = async ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const row = b.closest('.item'), r = ranking.find(x => x.id === row.dataset.id);
+  if (b.dataset.act === 'del') {
+    if (!confirm(`Apagar o resultado de ${r.nome} (${r.pontos} pontos)?`)) return;
+    try { await api('DELETE', `/ranking/${r.id}`); ranking = ranking.filter(x => x !== r); renderRanking(); toast('🗑️ Resultado apagado'); }
+    catch (e) { fail(e); }
+    return;
+  }
+  const nome = row.querySelector('input').value.trim().replace(/\s+/g, ' ');
+  if (nome.length < 2) return toast('Nome muito curto.', true);
+  if (nome === r.nome) return toast('Nada para salvar.');
+  try {
+    await api('PATCH', `/ranking/${r.id}?updateMask.fieldPaths=nome`, { fields: encFields({ nome }) });
+    r.nome = nome; toast('✅ Nome corrigido no ranking');
+  } catch (e) { fail(e); }
+};
+async function apagarFiltrados() {
+  const lista = rankFiltrado();
+  if (!lista.length) return toast('Nada para apagar.', true);
+  if (!confirm(`Apagar ${lista.length} resultado(s) do ranking?\n\nIsso não pode ser desfeito.`)) return;
+  if (lista.length > 5 && prompt(`Para confirmar, digite APAGAR`) !== 'APAGAR') return;
+  try {
+    await commit(lista.map(r => ({ delete: `${DB}/ranking/${r.id}` })));
+    const ids = new Set(lista.map(r => r.id));
+    ranking = ranking.filter(r => !ids.has(r.id)); renderRanking();
+    toast(`🗑️ ${lista.length} resultado(s) apagados`);
+  } catch (e) { fail(e); }
+}
+
+/* ================= AVISO ================= */
+function previewAviso() {
+  const t = $('vTexto').value.trim();
+  $('vLen').textContent = $('vTexto').value.length;
+  $('vPrev').textContent = t ? '📢 ' + t : '📢 (escreva a mensagem acima)';
+  $('vPrev').style.opacity = $('vAtivo').checked ? 1 : .45;
+}
+$('vTexto').oninput = previewAviso;
+$('vAtivo').onchange = previewAviso;
+async function loadAviso() {
+  const a = await Lian.Data.aviso();
+  $('vTexto').value = a.texto || ''; $('vAtivo').checked = !!a.ativo;
+  previewAviso();
+}
+async function salvarAviso() {
+  const texto = $('vTexto').value.trim().slice(0, 200), ativo = $('vAtivo').checked;
+  if (ativo && !texto) return toast('Escreva a mensagem ou desmarque "Mostrar".', true);
+  try { await api('PATCH', '/config/ranking', { fields: encFields({ texto, ativo }) }); toast(ativo ? '✅ Aviso publicado no ranking' : '✅ Aviso salvo (escondido)'); }
+  catch (e) { fail(e); }
+}
+</script>
+</body>
+</html>
